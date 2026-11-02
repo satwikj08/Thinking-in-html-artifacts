@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadence — Daily Task, Checklist & Schedule Dashboard</title>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-primary: #f8fafc;
+      --card-bg: #ffffff;
+      --border-subtle: #e2e8f0;
+    }
+    html.dark {
+      --bg-primary: #090d16;
+      --card-bg: #111827;
+      --border-subtle: #1f2937;
+    }
+    body {
+      background-color: var(--bg-primary);
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.55);
+    }
+    /* Smooth checkbox animation */
+    .custom-checkbox {
+      appearance: none;
+      width: 1.15rem;
+      height: 1.15rem;
+      border: 1.75px solid #cbd5e1;
+      border-radius: 0.375rem;
+      display: inline-grid;
+      place-content: center;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      background-color: transparent;
+      flex-shrink: 0;
+    }
+    html.dark .custom-checkbox {
+      border-color: #475569;
+    }
+    .custom-checkbox:hover {
+      border-color: #6366f1;
+    }
+    .custom-checkbox:checked {
+      background-color: #4f46e5;
+      border-color: #4f46e5;
+    }
+    .custom-checkbox::before {
+      content: "";
+      width: 0.65em;
+      height: 0.65em;
+      transform: scale(0);
+      transition: 140ms transform ease-in-out;
+      box-shadow: inset 1em 1em white;
+      transform-origin: center;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+    .custom-checkbox:checked::before {
+      transform: scale(1);
+    }
+    /* Circular Progress Transition */
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    /* Timeline grid background lines */
+    .timeline-hour-row {
+      height: 64px;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.65; }
+    }
+    .live-dot {
+      animation: pulse-dot 2s infinite;
+    }
+  </style>
+</head>
+<body class="text-slate-900 dark:text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-200">
+
+  <!-- TOP NAVIGATION & SUMMARY BAR -->
+  <header class="sticky top-0 z-30 backdrop-blur-md bg-white/85 dark:bg-slate-900/85 border-b border-slate-200/80 dark:border-slate-800/80">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand + Live Date -->
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-indigo-700 flex items-center justify-center text-white shadow-sm shadow-brand-500/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold tracking-tight text-base text-slate-900 dark:text-white">Cadence</span>
+              <span class="text-[11px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-100 font-medium">Workspace</span>
+            </div>
+            <p id="currentDateDisplay" class="text-xs text-slate-500 dark:text-slate-400 font-medium"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Quick Search & Shortcut -->
+      <div class="hidden md:flex items-center flex-1 max-w-md mx-4">
+        <div class="relative w-full">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Filter tasks, tags, or schedule... (Press '/' to focus)"
+            class="w-full pl-9 pr-12 py-1.5 text-sm bg-slate-100/80 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 dark:focus:border-brand-500 transition"
+          />
+          <kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">/</kbd>
+        </div>
+      </div>
+
+      <!-- Right Controls: Live Clock, Progress Ring, Reset, Theme Toggle -->
+      <div class="flex items-center gap-3">
+        <!-- Live Clock Pill -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/90 border border-slate-200/60 dark:border-slate-700/60">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 live-dot"></span>
+          <span id="liveClock" class="font-mono text-xs font-medium text-slate-700 dark:text-slate-200">--:--:--</span>
+        </div>
+
+        <!-- Overall Completion Pill -->
+        <div class="flex items-center gap-2.5 pl-2 pr-3 py-1 rounded-lg bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60" title="Overall Daily Progress">
+          <div class="relative w-7 h-7 flex items-center justify-center">
+            <svg class="w-7 h-7" viewBox="0 0 36 36">
+              <circle class="text-slate-200 dark:text-slate-700" stroke-width="3.8" stroke="currentColor" fill="transparent" r="14" cx="18" cy="18"/>
+              <circle id="headerProgressCircle" class="text-brand-600 dark:text-brand-500 progress-ring-circle" stroke-width="3.8" stroke-dasharray="87.96" stroke-dashoffset="87.96" stroke-linecap="round" stroke="currentColor" fill="transparent" r="14" cx="18" cy="18"/>
+            </svg>
+          </div>
+          <div class="leading-tight">
+            <div id="headerProgressText" class="text-xs font-bold font-mono text-slate-800 dark:text-slate-100">0%</div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400">Done</div>
+          </div>
+        </div>
+
+        <!-- New Schedule Event Modal Button -->
+        <button id="openEventModalBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span>Time Block</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" aria-label="Toggle Dark Mode" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 transition cursor-pointer">
+          <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+          </svg>
+          <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN 3-COLUMN WORKSPACE -->
+  <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Top Metric Strip -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-xs">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Tasks Completed</p>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="statTasksDone" class="text-2xl font-bold font-mono text-slate-900 dark:text-white">0/0</span>
+            <span id="statTasksPercent" class="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-medium">0%</span>
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-xs">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Daily Checklist Rituals</p>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="statHabitsDone" class="text-2xl font-bold font-mono text-slate-900 dark:text-white">0/0</span>
+            <span class="text-xs text-slate-400">routines</span>
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-xs">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">High Priority Pending</p>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="statHighPriority" class="text-2xl font-bold font-mono text-slate-900 dark:text-white">0</span>
+            <span class="text-xs text-rose-500 font-medium">critical</span>
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-xs">
+        <div>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Scheduled Hours</p>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="statScheduledHours" class="text-2xl font-bold font-mono text-slate-900 dark:text-white">0.0h</span>
+            <span id="statEventCount" class="text-xs text-slate-400">0 blocks</span>
+          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3-Column Core Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: DAILY CHECKLIST & FOCUS TIMER (3 COLS) -->
+      <div class="lg:col-span-3 space-y-6">
+        
+        <!-- Focus Pomodoro Timer Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Focus Session</h2>
+            </div>
+            <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[11px] font-medium">
+              <button id="modeFocusBtn" class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-2xs transition cursor-pointer">25m</button>
+              <button id="modeBreakBtn" class="px-2 py-0.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition cursor-pointer">5m</button>
+            </div>
+          </div>
+
+          <div class="text-center py-3">
+            <div id="pomodoroDisplay" class="text-4xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">25:00</div>
+            <p id="activeFocusTaskLabel" class="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">Ready for deep work</p>
+          </div>
+
+          <div class="flex items-center gap-2 mt-3">
+            <button id="timerStartPauseBtn" class="flex-1 py-2 px-3 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 transition cursor-pointer">
+              Start Focus
+            </button>
+            <button id="timerResetBtn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer" title="Reset Timer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Daily Checklist Card (Recurring Rituals) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white">Daily Checklist</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Non-negotiable daily rituals</p>
+            </div>
+            <button id="resetChecklistBtn" class="text-[11px] font-medium text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition cursor-pointer" title="Uncheck all daily rituals">
+              Reset
+            </button>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-4">
+            <div id="checklistProgressBar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+
+          <!-- Checklist Items Container -->
+          <ul id="checklistContainer" class="space-y-2 mb-4"></ul>
+
+          <!-- Add New Ritual Input -->
+          <form id="addChecklistForm" class="flex gap-1.5">
+            <input
+              id="newChecklistInput"
+              type="text"
+              placeholder="Add daily ritual..."
+              class="flex-1 text-xs px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 focus:outline-none focus:border-brand-500"
+            />
+            <select id="newChecklistPeriod" class="text-[11px] px-2 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 focus:outline-none">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+              <option value="ANY">Any</option>
+            </select>
+            <button type="submit" class="px-2.5 py-2 rounded-lg bg-slate-900 dark:bg-slate-700 text-white text-xs font-semibold hover:bg-slate-800 transition cursor-pointer">+</button>
+          </form>
+        </div>
+
+        <!-- Quick Scratchpad Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">Quick Scratchpad</h2>
+            <span id="notesSavedBadge" class="text-[10px] font-mono text-slate-400">Auto-saved</span>
+          </div>
+          <textarea
+            id="scratchpadArea"
+            rows="4"
+            placeholder="Jot down quick thoughts, meeting links, or blockers for today..."
+            class="w-full text-xs leading-relaxed p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 focus:outline-none focus:border-brand-500 resize-none text-slate-700 dark:text-slate-200"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- CENTER COLUMN: TO-DO TASKS MANAGEMENT (5 COLS) -->
+      <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col">
+        
+        <!-- Header & Category Filters -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Action Tasks</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Prioritize, break down, and execute</p>
+          </div>
+
+          <!-- Status Filter Tabs -->
+          <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl self-start">
+            <button data-filter="all" class="task-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs transition cursor-pointer">All</button>
+            <button data-filter="active" class="task-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 transition cursor-pointer">Active</button>
+            <button data-filter="completed" class="task-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 transition cursor-pointer">Done</button>
+          </div>
+        </div>
+
+        <!-- Add Task Composer -->
+        <form id="addTaskForm" class="mt-4 bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-3 transition focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:border-brand-500">
+          <input
+            id="taskTitleInput"
+            type="text"
+            required
+            placeholder="What needs to get done today? (Press Enter to add)"
+            class="w-full bg-transparent text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none mb-2.5"
+          />
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <!-- Priority Selector -->
+              <select id="taskPriorityInput" class="text-xs px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none">
+                <option value="high">Priority: High</option>
+                <option value="medium" selected>Priority: Medium</option>
+                <option value="low">Priority: Low</option>
+              </select>
+
+              <!-- Tag Selector -->
+              <select id="taskCategoryInput" class="text-xs px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none">
+                <option value="Product">Product</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Design">Design</option>
+                <option value="Operations">Operations</option>
+                <option value="Personal">Personal</option>
+              </select>
+
+              <!-- Time Estimate -->
+              <input
+                id="taskEstInput"
+                type="text"
+                placeholder="Est (e.g. 45m)"
+                class="w-24 text-xs font-mono px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none"
+              />
+            </div>
+
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-2xs transition cursor-pointer">
+              Add Task
+            </button>
+          </div>
+        </form>
+
+        <!-- Category Pill Bar -->
+        <div class="flex items-center justify-between gap-2 mt-4 mb-2 overflow-x-auto pb-1">
+          <div id="categoryFilterBar" class="flex items-center gap-1.5">
+            <button data-cat="ALL" class="cat-pill px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition cursor-pointer">All Tags</button>
+            <button data-cat="Product" class="cat-pill px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer">Product</button>
+            <button data-cat="Engineering" class="cat-pill px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer">Engineering</button>
+            <button data-cat="Design" class="cat-pill px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer">Design</button>
+            <button data-cat="Operations" class="cat-pill px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer">Operations</button>
+            <button data-cat="Personal" class="cat-pill px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer">Personal</button>
+          </div>
+
+          <button id="clearCompletedBtn" class="text-[11px] font-medium text-slate-400 hover:text-rose-500 whitespace-nowrap transition cursor-pointer">
+            Clear done
+          </button>
+        </div>
+
+        <!-- Tasks List Container -->
+        <div id="tasksListContainer" class="mt-2 space-y-2.5 flex-1"></div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: DAILY SCHEDULE TIMELINE (4 COLS) -->
+      <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Daily Schedule</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Time-blocked agenda (08:00 – 20:00)</p>
+          </div>
+          <button id="scrollToNowBtn" class="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline cursor-pointer">
+            Jump to Now
+          </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-3 py-2.5 text-[11px] text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/80">
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>Deep Work</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Meeting</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Personal / Break</span>
+        </div>
+
+        <!-- Scrollable Timeline Grid -->
+        <div id="timelineScrollWrapper" class="relative mt-3 h-[580px] overflow-y-auto pr-1 select-none">
+          <div id="timelineGrid" class="relative min-h-[832px]">
+            <!-- Hour rows rendered by JS (08:00 to 20:00 = 13 hours * 64px = 832px) -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL: ADD / EDIT SCHEDULE TIME BLOCK -->
+  <div id="eventModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Add Schedule Time Block</h3>
+        <button id="closeEventModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form id="eventForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Block Title</label>
+          <input id="eventTitle" type="text" required placeholder="e.g., Architecture Review or Deep Coding" class="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-brand-500" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Start Time</label>
+            <input id="eventStart" type="time" min="08:00" max="20:00" value="10:00" required class="w-full px-3 py-2 text-sm font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-brand-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">End Time</label>
+            <input id="eventEnd" type="time" min="08:15" max="21:00" value="11:00" required class="w-full px-3 py-2 text-sm font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-brand-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Block Type</label>
+            <select id="eventType" class="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-brand-500">
+              <option value="deep">Deep Work (Indigo)</option>
+              <option value="meeting">Meeting / Sync (Amber)</option>
+              <option value="break">Personal / Recharge (Emerald)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Location / Note</label>
+            <input id="eventMeta" type="text" placeholder="e.g., Room 4B / Meet" class="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-brand-500" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" id="cancelEventBtn" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition cursor-pointer">Save Time Block</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION SCRIPT -->
+  <script>
+    /**************************************************************
+     * 1. INITIAL STATE & LOCALSTORAGE PERSISTENCE
+     **************************************************************/
+    const STORAGE_KEY = 'cadence_dashboard_v1';
+
+    const defaultState = {
+      theme: 'light',
+      scratchpad: '• Finalize Q4 design system tokens before 2 PM sync\n• Remember to review PR #418 performance benchmarks\n• Prep demo deck metrics for Friday all-hands',
+      checklist: [
+        { id: 'c1', title: 'Review calendar & top 3 daily priorities', period: 'AM', done: true },
+        { id: 'c2', title: 'Inbox zero & Slack triage (15 min cap)', period: 'AM', done: true },
+        { id: 'c3', title: '90-minute uninterrupted deep work block', period: 'AM', done: false },
+        { id: 'c4', title: 'Hydration & 15-minute outdoor walk', period: 'PM', done: false },
+        { id: 'c5', title: 'Log daily progress & plan tomorrow’s top 3', period: 'PM', done: false }
+      ],
+      tasks: [
+        {
+          id: 't1',
+          title: 'Ship interactive analytics widget for customer portal',
+          priority: 'high',
+          category: 'Engineering',
+          estimate: '90m',
+          completed: false,
+          expanded: true,
+          subtasks: [
+            { id: 's1', title: 'Verify responsive grid breakpoints on tablet', done: true },
+            { id: 's2', title: 'Connect real-time WebSocket state handler', done: true },
+            { id: 's3', title: 'Run accessibility contrast & keyboard audit', done: false }
+          ]
+        },
+        {
+          id: 't2',
+          title: 'Approve Q4 Product Roadmap & resource allocation doc',
+          priority: 'high',
+          category: 'Product',
+          estimate: '45m',
+          completed: false,
+          expanded: false,
+          subtasks: [
+            { id: 's4', title: 'Cross-check engineering capacity table', done: false },
+            { id: 's5', title: 'Leave sign-off comment for VP of Product', done: false }
+          ]
+        },
+        {
+          id: 't3',
+          title: 'Refine dark-mode elevation tokens & border contrast',
+          priority: 'medium',
+          category: 'Design',
+          estimate: '30m',
+          completed: true,
+          expanded: false,
+          subtasks: []
+        },
+        {
+          id: 't4',
+          title: 'Prepare weekly cloud infrastructure cost summary',
+          priority: 'medium',
+          category: 'Operations',
+          estimate: '40m',
+          completed: false,
+          expanded: false,
+          subtasks: []
+        },
+        {
+          id: 't5',
+          title: 'Book dentist checkup & renew gym membership',
+          priority: 'low',
+          category: 'Personal',
+          estimate: '15m',
+          completed: false,
+          expanded: false,
+          subtasks: []
+        }
+      ],
+      schedule: [
+        { id: 'e1', title: 'Morning Triage & Sprint Standup', start: '09:00', end: '09:45', type: 'meeting', meta: 'Google Meet' },
+        { id: 'e2', title: 'Deep Work: Analytics Portal Architecture', start: '10:00', end: '12:00', type: 'deep', meta: 'Focus Mode • DND' },
+        { id: 'e3', title: 'Lunch & Midday Recharge Walk', start: '12:30', end: '13:30', type: 'break', meta: 'Offline' },
+        { id: 'e4', title: 'Product & Design Spec Review', start: '14:00', end: '15:00', type: 'meeting', meta: 'Figma Huddle' },
+        { id: 'e5', title: 'Code Review & PR Merges', start: '15:30', end: '17:00', type: 'deep', meta: 'GitHub' },
+        { id: 'e6', title: 'Daily Wrap-up & Tomorrow Planning', start: '17:30', end: '18:15', type: 'break', meta: 'Desk' }
+      ]
+    };
+
+    let state = loadState();
+    let currentTaskFilter = 'all'; // 'all' | 'active' | 'completed'
+    let currentCategoryFilter = 'ALL';
+    let searchQuery = '';
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const parsed = JSON.parse(raw);
+        return { ...structuredClone(defaultState), ...parsed };
+      } catch (e) {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error('Failed to save state:', e);
+      }
+      updateMetricsAndHeader();
+    }
+
+    /**************************************************************
+     * 2. THEME, DATE & LIVE CLOCK
+     **************************************************************/
+    function applyTheme() {
+      const root = document.documentElement;
+      if (state.theme === 'dark') {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      } else {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      }
+    }
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+      saveState();
+    });
+
+    function updateClockAndDate() {
+      const now = new Date();
+      const dateOpts = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
+      document.getElementById('currentDateDisplay').textContent = now.toLocaleDateString('en-US', dateOpts);
+      document.getElementById('liveClock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+      updateNowIndicatorLine();
+    }
+
+    /**************************************************************
+     * 3. METRICS & PROGRESS RING
+     **************************************************************/
+    function updateMetricsAndHeader() {
+      const totalTasks = state.tasks.length;
+      const doneTasks = state.tasks.filter(t => t.completed).length;
+      const taskPct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+      const totalHabits = state.checklist.length;
+      const doneHabits = state.checklist.filter(c => c.done).length;
+      const habitPct = totalHabits ? Math.round((doneHabits / totalHabits) * 100) : 0;
+
+      const totalCombined = totalTasks + totalHabits;
+      const doneCombined = doneTasks + doneHabits;
+      const overallPct = totalCombined ? Math.round((doneCombined / totalCombined) * 100) : 0;
+
+      // Update Stat Cards
+      document.getElementById('statTasksDone').textContent = `${doneTasks}/${totalTasks}`;
+      document.getElementById('statTasksPercent').textContent = `${taskPct}%`;
+      document.getElementById('statHabitsDone').textContent = `${doneHabits}/${totalHabits}`;
+
+      const highPending = state.tasks.filter(t => !t.completed && t.priority === 'high').length;
+      document.getElementById('statHighPriority').textContent = highPending;
+
+      // Calculate total scheduled hours
+      let totalMinutes = 0;
+      state.schedule.forEach(ev => {
+        const diff = timeToMinutes(ev.end) - timeToMinutes(ev.start);
+        if (diff > 0) totalMinutes += diff;
+      });
+      document.getElementById('statScheduledHours').textContent = `${(totalMinutes / 60).toFixed(1)}h`;
+      document.getElementById('statEventCount').textContent = `${state.schedule.length} blocks`;
+
+      // Update Checklist Progress Bar
+      document.getElementById('checklistProgressBar').style.width = `${habitPct}%`;
+
+      // Update Header SVG Circle (r=14 => circumference = 2 * PI * 14 ≈ 87.96)
+      const circumference = 87.96;
+      const offset = circumference - (overallPct / 100) * circumference;
+      document.getElementById('headerProgressCircle').style.strokeDashoffset = offset;
+      document.getElementById('headerProgressText').textContent = `${overallPct}%`;
+    }
+
+    /**************************************************************
+     * 4. DAILY CHECKLIST (LEFT PANEL)
+     **************************************************************/
+    function renderChecklist() {
+      const container = document.getElementById('checklistContainer');
+      const filtered = state.checklist.filter(item =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<li class="text-xs text-slate-400 py-3 text-center">No matching rituals</li>`;
+        return;
+      }
+
+      const periodBadgeColors = {
+        AM: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+        PM: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300',
+        ANY: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+      };
+
+      container.innerHTML = filtered.map(item => `
+        <li class="group flex items-center justify-between gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/60 dark:hover:border-slate-700/60 transition">
+          <label class="flex items-center gap-2.5 flex-1 cursor-pointer select-none min-w-0">
+            <input type="checkbox" class="custom-checkbox" ${item.done ? 'checked' : ''} onchange="toggleChecklistItem('${item.id}')" />
+            <span class="text-xs font-medium truncate ${item.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}">
+              ${escapeHtml(item.title)}
+            </span>
+          </label>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${periodBadgeColors[item.period] || periodBadgeColors.ANY}">
+              ${item.period}
+            </span>
+            <button onclick="deleteChecklistItem('${item.id}')" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 p-0.5 transition cursor-pointer" title="Delete ritual">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    window.toggleChecklistItem = function(id) {
+      const item = state.checklist.find(c => c.id === id);
+      if (item) {
+        item.done = !item.done;
+        saveState();
+        renderChecklist();
+      }
+    };
+
+    window.deleteChecklistItem = function(id) {
+      state.checklist = state.checklist.filter(c => c.id !== id);
+      saveState();
+      renderChecklist();
+    };
+
+    document.getElementById('addChecklistForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const input = document.getElementById('newChecklistInput');
+      const period = document.getElementById('newChecklistPeriod').value;
+      const title = input.value.trim();
+      if (!title) return;
+      state.checklist.push({
+        id: 'c_' + Date.now(),
+        title,
+        period,
+        done: false
+      });
+      input.value = '';
+      saveState();
+      renderChecklist();
+    });
+
+    document.getElementById('resetChecklistBtn').addEventListener('click', () => {
+      state.checklist.forEach(c => c.done = false);
+      saveState();
+      renderChecklist();
+    });
+
+    /**************************************************************
+     * 5. TO-DO TASKS & SUBTASKS (CENTER PANEL)
+     **************************************************************/
+    const priorityStyles = {
+      high: {
+        badge: 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
+        dot: 'bg-rose-500',
+        label: 'High'
+      },
+      medium: {
+        badge: 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
+        dot: 'bg-amber-500',
+        label: 'Med'
+      },
+      low: {
+        badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
+        dot: 'bg-emerald-500',
+        label: 'Low'
+      }
+    };
+
+    const categoryColors = {
+      Product: 'bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300',
+      Engineering: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+      Design: 'bg-pink-50 text-pink-700 dark:bg-pink-500/15 dark:text-pink-300',
+      Operations: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300',
+      Personal: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+    };
+
+    function renderTasks() {
+      const container = document.getElementById('tasksListContainer');
+
+      // Filter by status, category, and search query
+      const filtered = state.tasks.filter(task => {
+        if (currentTaskFilter === 'active' && task.completed) return false;
+        if (currentTaskFilter === 'completed' && !task.completed) return false;
+        if (currentCategoryFilter !== 'ALL' && task.category !== currentCategoryFilter) return false;
+        if (searchQuery.trim() !== '') {
+          const q = searchQuery.toLowerCase();
+          const matchTitle = task.title.toLowerCase().includes(q);
+          const matchCat = task.category.toLowerCase().includes(q);
+          const matchSub = (task.subtasks || []).some(s => s.title.toLowerCase().includes(q));
+          return matchTitle || matchCat || matchSub;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 px-4 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+            <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">No tasks match this view</p>
+            <p class="text-xs text-slate-400 mt-1">Add a new task above or switch your active filters.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(task => {
+        const pStyle = priorityStyles[task.priority] || priorityStyles.medium;
+        const cStyle = categoryColors[task.category] || categoryColors.Personal;
+        const subTotal = task.subtasks ? task.subtasks.length : 0;
+        const subDone = task.subtasks ? task.subtasks.filter(s => s.done).length : 0;
+
+        return `
+          <div class="group rounded-xl border ${task.completed ? 'bg-slate-50/60 dark:bg-slate-800/25 border-slate-200/60 dark:border-slate-800/70' : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'} p-3.5 transition shadow-2xs">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3 flex-1 min-w-0">
+                <input
+                  type="checkbox"
+                  class="custom-checkbox mt-0.5"
+                  ${task.completed ? 'checked' : ''}
+                  onchange="toggleTaskStatus('${task.id}')"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-sm font-semibold leading-snug ${task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}">
+                      ${escapeHtml(task.title)}
+                    </span>
+                  </div>
+
+                  <!-- Metadata Row -->
+                  <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <!-- Priority Badge -->
+                    <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md border ${pStyle.badge}">
+                      <span class="w-1.5 h-1.5 rounded-full ${pStyle.dot}"></span>
+                      ${pStyle.label}
+                    </span>
+
+                    <!-- Category Tag -->
+                    <span class="text-[11px] font-medium px-2 py-0.5 rounded-md ${cStyle}">
+                      ${escapeHtml(task.category)}
+                    </span>
+
+                    <!-- Estimate -->
+                    ${task.estimate ? `
+                      <span class="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        ${escapeHtml(task.estimate)}
+                      </span>
+                    ` : ''}
+
+                    <!-- Subtask Counter Button -->
+                    <button onclick="toggleSubtasksExpand('${task.id}')" class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                      </svg>
+                      <span>${subDone}/${subTotal} steps</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Actions: Focus on Task & Delete -->
+              <div class="flex items-center gap-1 shrink-0">
+                <button onclick="setFocusTask('${ task.id }')" class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/15 transition cursor-pointer" title="Send to Focus Timer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                  </svg>
+                </button>
+                <button onclick="deleteTask('${task.id}')" class="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition cursor-pointer" title="Delete Task">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Collapsible Subtask Checklist Section -->
+            ${task.expanded ? `
+              <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 pl-7 space-y-2">
+                ${(task.subtasks || []).map(sub => `
+                  <div class="flex items-center justify-between gap-2 group/sub">
+                    <label class="flex items-center gap-2 text-xs cursor-pointer flex-1">
+                      <input type="checkbox" class="custom-checkbox !w-3.5 !h-3.5" ${sub.done ? 'checked' : ''} onchange="toggleSubtask('${task.id}', '${sub.id}')" />
+                      <span class="${sub.done ? 'line-through text-slate-400' : 'text-slate-600 dark:text-slate-300'}">${escapeHtml(sub.title)}</span>
+                    </label>
+                    <button onclick="deleteSubtask('${task.id}', '${sub.id}')" class="opacity-0 group-hover/sub:opacity-100 text-slate-400 hover:text-rose-500 text-xs px-1 cursor-pointer">×</button>
+                  </div>
+                `).join('')}
+
+                <form onsubmit="addSubtask(event, '${task.id}')" class="flex gap-1.5 pt-1">
+                  <input
+                    type="text"
+                    placeholder="Add a checklist step..."
+                    class="flex-1 text-xs px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-brand-500"
+                  />
+                  <button type="submit" class="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-300 transition cursor-pointer">Add</button>
+                </form>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleTaskStatus = function(taskId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.completed = !task.completed;
+        saveState();
+        renderTasks();
+      }
+    };
+
+    window.deleteTask = function(taskId) {
+      state.tasks = state.tasks.filter(t => t.id !== taskId);
+      saveState();
+      renderTasks();
+    };
+
+    window.toggleSubtasksExpand = function(taskId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.expanded = !task.expanded;
+        saveState();
+        renderTasks();
+      }
+    };
+
+    window.toggleSubtask = function(taskId, subId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      const sub = task.subtasks.find(s => s.id === subId);
+      if (sub) {
+        sub.done = !sub.done;
+        saveState();
+        renderTasks();
+      }
+    };
+
+    window.deleteSubtask = function(taskId, subId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      task.subtasks = task.subtasks.filter(s => s.id !== subId);
+      saveState();
+      renderTasks();
+    };
+
+    window.addSubtask = function(e, taskId) {
+      e.preventDefault();
+      const input = e.target.querySelector('input');
+      const title = input.value.trim();
+      if (!title) return;
+      const task = state.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.subtasks = task.subtasks || [];
+        task.subtasks.push({ id: 's_' + Date.now(), title, done: false });
+        saveState();
+        renderTasks();
+      }
+    };
+
+    document.getElementById('addTaskForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const titleInput = document.getElementById('taskTitleInput');
+      const priorityInput = document.getElementById('taskPriorityInput');
+      const categoryInput = document.getElementById('taskCategoryInput');
+      const estInput = document.getElementById('taskEstInput');
+
+      const title = titleInput.value.trim();
+      if (!title) return;
+
+      state.tasks.unshift({
+        id: 't_' + Date.now(),
+        title,
+        priority: priorityInput.value,
+        category: categoryInput.value,
+        estimate: estInput.value.trim() || '30m',
+        completed: false,
+        expanded: false,
+        subtasks: []
+      });
+
+      titleInput.value = '';
+      estInput.value = '';
+      saveState();
+      renderTasks();
+    });
+
+    // Filter Buttons
+    document.querySelectorAll('.task-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentTaskFilter = btn.dataset.filter;
+        document.querySelectorAll('.task-filter-btn').forEach(b => {
+          b.className = 'task-filter-btn px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 transition cursor-pointer';
+        });
+        btn.className = 'task-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs transition cursor-pointer';
+        renderTasks();
+      });
+    });
+
+    // Category Pills
+    document.querySelectorAll('.cat-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentCategoryFilter = btn.dataset.cat;
+        document.querySelectorAll('.cat-pill').forEach(b => {
+          b.className = 'cat-pill px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition cursor-pointer';
+        });
+        btn.className = 'cat-pill px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition cursor-pointer';
+        renderTasks();
+      });
+    });
+
+    document.getElementById('clearCompletedBtn').addEventListener('click', () => {
+      state.tasks = state.tasks.filter(t => !t.completed);
+      saveState();
+      renderTasks();
+    });
+
+    /**************************************************************
+     * 6. DAILY SCHEDULE TIMELINE (RIGHT PANEL)
+     **************************************************************/
+    const START_HOUR = 8;  // 08:00
+    const END_HOUR = 20;   // 20:00
+    const HOUR_HEIGHT = 64; // px per hour
+
+    function timeToMinutes(timeStr) {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function renderSchedule() {
+      const grid = document.getElementById('timelineGrid');
+      let html = '';
+
+      // 1. Render background hour rows
+      for (let h = START_HOUR; h <= END_HOUR; h++) {
+        const label = `${String(h).padStart(2, '0')}:00`;
+        html += `
+          <div class="timeline-hour-row flex items-start border-t border-slate-100 dark:border-slate-800/80 relative">
+            <span class="w-12 pr-2 text-[11px] font-mono text-slate-400 dark:text-slate-500 -mt-2 bg-white dark:bg-slate-900">${label}</span>
+            <div class="flex-1 h-full border-l border-slate-100 dark:border-slate-800/60"></div>
+          </div>
+        `;
+      }
+
+      // 2. Render Live Current Time Indicator Line
+      html += `
+        <div id="nowIndicatorLine" class="absolute left-11 right-0 z-20 pointer-events-none flex items-center hidden">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500 -ml-1.5 shadow-xs"></span>
+          <div class="flex-1 h-[1.5px] bg-rose-500"></div>
+          <span id="nowIndicatorTime" class="ml-1 px-1.5 py-0.5 rounded bg-rose-500 text-white font-mono text-[10px] font-semibold"></span>
+        </div>
+      `;
+
+      // 3. Render Time Block Events
+      const typeThemes = {
+        deep: 'bg-indigo-50/95 dark:bg-indigo-950/80 border-l-4 border-indigo-500 text-indigo-950 dark:text-indigo-100 ring-1 ring-indigo-200/60 dark:ring-indigo-800/50',
+        meeting: 'bg-amber-50/95 dark:bg-amber-950/80 border-l-4 border-amber-500 text-amber-950 dark:text-amber-100 ring-1 ring-amber-200/60 dark:ring-amber-800/50',
+        break: 'bg-emerald-50/95 dark:bg-emerald-950/80 border-l-4 border-emerald-500 text-emerald-950 dark:text-emerald-100 ring-1 ring-emerald-200/60 dark:ring-emerald-800/50'
+      };
+
+      const filteredEvents = state.schedule.filter(ev =>
+        ev.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (ev.meta && ev.meta.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+
+      filteredEvents.forEach(ev => {
+        const startMins = timeToMinutes(ev.start);
+        const endMins = timeToMinutes(ev.end);
+        const baseMins = START_HOUR * 60;
+
+        const topPx = Math.max(0, ((startMins - baseMins) / 60) * HOUR_HEIGHT);
+        const durationMins = Math.max(25, endMins - startMins);
+        const heightPx = (durationMins / 60) * HOUR_HEIGHT;
+        const theme = typeThemes[ev.type] || typeThemes.deep;
+
+        html += `
+          <div
+            style="top: ${topPx}px; height: ${heightPx - 3}px;"
+            class="group absolute left-14 right-2 z-10 rounded-xl px-3 py-1.5 transition shadow-2xs hover:shadow-md flex flex-col justify-between overflow-hidden ${theme}"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-xs font-bold truncate leading-snug">${escapeHtml(ev.title)}</p>
+                <p class="text-[10px] font-mono opacity-75 truncate">${ev.start} – ${ev.end} ${ev.meta ? `• ${escapeHtml(ev.meta)}` : ''}</p>
+              </div>
+              <button onclick="deleteScheduleEvent('${ev.id}')" class="opacity-0 group-hover:opacity-100 text-current/60 hover:text-rose-600 p-0.5 transition cursor-pointer" title="Remove block">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      grid.innerHTML = html;
+      updateNowIndicatorLine();
+    }
+
+    function updateNowIndicatorLine() {
+      const line = document.getElementById('nowIndicatorLine');
+      const label = document.getElementById('nowIndicatorTime');
+      if (!line || !label) return;
+
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      const startMins = START_HOUR * 60;
+      const endMins = (END_HOUR + 1) * 60;
+
+      if (mins >= startMins && mins <= endMins) {
+        const topPx = ((mins - startMins) / 60) * HOUR_HEIGHT;
+        line.style.top = `${topPx}px`;
+        line.classList.remove('hidden');
+        label.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      } else {
+        line.classList.add('hidden');
+      }
+    }
+
+    window.deleteScheduleEvent = function(id) {
+      state.schedule = state.schedule.filter(e => e.id !== id);
+      saveState();
+      renderSchedule();
+    };
+
+    document.getElementById('scrollToNowBtn').addEventListener('click', () => {
+      const wrapper = document.getElementById('timelineScrollWrapper');
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      const startMins = START_HOUR * 60;
+      const targetY = Math.max(0, ((mins - startMins) / 60) * HOUR_HEIGHT - 160);
+      wrapper.scrollTo({ top: targetY, behavior: 'smooth' });
+    });
+
+    // Modal Handlers
+    const eventModal = document.getElementById('eventModal');
+    const openModal = () => {
+      eventModal.classList.remove('hidden');
+      eventModal.classList.add('flex');
+      document.getElementById('eventTitle').focus();
+    };
+    const closeModal = () => {
+      eventModal.classList.add('hidden');
+      eventModal.classList.remove('flex');
+    };
+
+    document.getElementById('openEventModalBtn').addEventListener('click', openModal);
+    document.getElementById('closeEventModalBtn').addEventListener('click', closeModal);
+    document.getElementById('cancelEventBtn').addEventListener('click', closeModal);
+
+    document.getElementById('eventForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const title = document.getElementById('eventTitle').value.trim();
+      const start = document.getElementById('eventStart').value;
+      const end = document.getElementById('eventEnd').value;
+      const type = document.getElementById('eventType').value;
+      const meta = document.getElementById('eventMeta').value.trim();
+
+      if (!title || !start || !end) return;
+      if (timeToMinutes(end) <= timeToMinutes(start)) {
+        alert('End time must be after start time.');
+        return;
+      }
+
+      state.schedule.push({
+        id: 'e_' + Date.now(),
+        title,
+        start,
+        end,
+        type,
+        meta
+      });
+
+      document.getElementById('eventTitle').value = '';
+      document.getElementById('eventMeta').value = '';
+      closeModal();
+      saveState();
+      renderSchedule();
+    });
+
+    /**************************************************************
+     * 7. FOCUS POMODORO TIMER
+     **************************************************************/
+    let timerSeconds = 25 * 60;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    function formatTimer(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerUI() {
+      document.getElementById('pomodoroDisplay').textContent = formatTimer(timerSeconds);
+      document.getElementById('timerStartPauseBtn').textContent = isTimerRunning ? 'Pause Session' : 'Start Focus';
+    }
+
+    document.getElementById('timerStartPauseBtn').addEventListener('click', () => {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+      } else {
+        isTimerRunning = true;
+        timerInterval = setInterval(() => {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            updateTimerUI();
+          }
+        }, 1000);
+      }
+      updateTimerUI();
+    });
+
+    document.getElementById('timerResetBtn').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerSeconds = 25 * 60;
+      updateTimerUI();
+    });
+
+    document.getElementById('modeFocusBtn').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerSeconds = 25 * 60;
+      updateTimerUI();
+    });
+
+    document.getElementById('modeBreakBtn').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerSeconds = 5 * 60;
+      updateTimerUI();
+    });
+
+    window.setFocusTask = function(taskId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (task) {
+        document.getElementById('activeFocusTaskLabel').textContent = `Focusing: ${task.title}`;
+      }
+    };
+
+    /**************************************************************
+     * 8. SCRATCHPAD, SEARCH & KEYBOARD SHORTCUTS
+     **************************************************************/
+    const scratchpad = document.getElementById('scratchpadArea');
+    scratchpad.value = state.scratchpad || '';
+    scratchpad.addEventListener('input', () => {
+      state.scratchpad = scratchpad.value;
+      saveState();
+      const badge = document.getElementById('notesSavedBadge');
+      badge.textContent = 'Saved just now';
+      setTimeout(() => { badge.textContent = 'Auto-saved'; }, 1500);
+    });
+
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', e => {
+      searchQuery = e.target.value;
+      renderChecklist();
+      renderTasks();
+      renderSchedule();
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    /**************************************************************
+     * 9. INITIALIZE DASHBOARD
+     **************************************************************/
+    applyTheme();
+    updateClockAndDate();
+    setInterval(updateClockAndDate, 1000);
+    renderChecklist();
+    renderTasks();
+    renderSchedule();
+    updateMetricsAndHeader();
+  </script>
+</body>
+</html>

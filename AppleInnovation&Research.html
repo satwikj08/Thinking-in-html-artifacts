@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apple — Architecture of Restraint: Innovation & Industrial Design</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            obsidian: {
+              950: '#07080c',
+              900: '#0e1017',
+              800: '#161923',
+            },
+            champagne: {
+              100: '#fef3c7',
+              200: '#fde68a',
+              300: '#fcd34d',
+              400: '#fbbf24',
+              500: '#f59e0b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body {
+      background-color: #07080c;
+      color: #f8fafc;
+      overflow: hidden;
+      user-select: none;
+    }
+    /* Rich luxury ambient spotlighting */
+    .ambient-glow {
+      background:
+        radial-gradient(900px circle at 15% 15%, rgba(251, 191, 36, 0.09), transparent 55%),
+        radial-gradient(850px circle at 85% 80%, rgba(56, 189, 248, 0.08), transparent 55%),
+        linear-gradient(180deg, #07080c 0%, #0b0d14 100%);
+    }
+    /* Slide transition dynamics */
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(18px) scale(0.985);
+      transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+    /* High-contrast luxury glass card */
+    .glass-panel {
+      background: rgba(20, 23, 34, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(253, 230, 138, 0.20);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    }
+    .glass-panel-hover {
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-panel-hover:hover {
+      border-color: rgba(251, 191, 36, 0.55);
+      transform: translateY(-2px);
+      background: rgba(28, 32, 46, 0.95);
+    }
+    /* High-visibility luminous metallic headlines */
+    .text-luxury-gold {
+      background: linear-gradient(135deg, #ffffff 0%, #fef3c7 45%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .text-luxury-platinum {
+      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 55%, #bae6fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    /* Animated Bar Fill */
+    .chart-bar-fill {
+      transition: width 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between ambient-glow relative">
+
+  <!-- TOP PROGRESS BAR -->
+  <div class="fixed top-0 left-0 right-0 h-1 bg-slate-800 z-50">
+    <div id="topProgressBar" class="h-full bg-gradient-to-r from-amber-300 via-amber-400 to-sky-400 transition-all duration-500" style="width: 11.11%"></div>
+  </div>
+
+  <!-- TOP NAVIGATION CHROME -->
+  <header class="relative z-40 px-6 sm:px-12 pt-6 pb-3.5 flex items-center justify-between border-b border-amber-200/15 bg-obsidian-950/60 backdrop-blur-md">
+    <div class="flex items-center gap-3.5">
+      <!-- Luxury Gold & Obsidian Emblem -->
+      <div class="w-9 h-9 rounded-xl bg-amber-400/15 border border-amber-300/40 flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.33c.64-.78 1.08-1.86.96-2.94-.93.04-2.06.62-2.72 1.4-.58.68-1.1 1.79-.96 2.84 1.04.08 2.08-.52 2.72-1.3z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="text-[11px] font-mono uppercase tracking-[0.22em] text-amber-300 font-semibold block">Keynote Monograph</span>
+        <h1 class="text-sm font-bold text-white tracking-tight">Industrial Design & Silicon Architecture</h1>
+      </div>
+    </div>
+
+    <!-- Center Chapter Indicator -->
+    <div id="chapterBadge" class="hidden md:flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-900/90 border border-amber-300/35 text-xs font-mono font-semibold text-amber-200 shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+      <span id="chapterText">01 / PROLOGUE</span>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center gap-2.5">
+      <button id="overviewBtn" class="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-100 transition cursor-pointer" title="Toggle Slide Grid (Press G)">
+        Slides <span class="font-mono text-[11px] text-amber-300 ml-1">[G]</span>
+      </button>
+      <button id="fullscreenBtn" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-100 transition cursor-pointer" title="Fullscreen (Press F)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN SLIDE VIEWPORT -->
+  <main id="slidesViewport" class="relative flex-1 w-full max-w-7xl mx-auto px-6 sm:px-12 overflow-hidden">
+
+    <!-- ==========================================
+         SLIDE 1: HERO COVER
+         ========================================== -->
+    <section class="slide active" data-chapter="01 / PROLOGUE">
+      <div class="max-w-4xl">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/15 border border-amber-300/40 text-xs font-mono font-semibold text-amber-200 mb-6">
+          <span>INDUSTRIAL DESIGN & HARDWARE ENGINEERING</span>
+        </div>
+        <h2 class="text-5xl sm:text-7xl font-extrabold tracking-tight leading-[1.05] text-luxury-gold mb-6">
+          The Architecture of Restraint.
+        </h2>
+        <p class="text-lg sm:text-xl text-slate-100 font-normal leading-relaxed max-w-2xl mb-10">
+          How Apple’s newest generation of products—from 3-nanometer M4 silicon and Tandem OLED displays to spatial computing and carbon-neutral metallurgy—redefines form through deep vertical integration.
+        </p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-5 pt-7 border-t border-amber-200/20">
+          <div class="glass-panel rounded-xl p-4">
+            <p class="text-xs font-mono font-semibold uppercase text-amber-300">Lithography</p>
+            <p class="text-2xl font-extrabold text-white mt-1">3nm <span class="text-xs font-semibold text-sky-300">2nd Gen</span></p>
+          </div>
+          <div class="glass-panel rounded-xl p-4">
+            <p class="text-xs font-mono font-semibold uppercase text-amber-300">Thinnest Profile</p>
+            <p class="text-2xl font-extrabold text-white mt-1">5.1 mm <span class="text-xs font-semibold text-slate-200">iPad Pro</span></p>
+          </div>
+          <div class="glass-panel rounded-xl p-4">
+            <p class="text-xs font-mono font-semibold uppercase text-amber-300">Spatial Display</p>
+            <p class="text-2xl font-extrabold text-white mt-1">23M <span class="text-xs font-semibold text-purple-300">Pixels</span></p>
+          </div>
+          <div class="glass-panel rounded-xl p-4">
+            <p class="text-xs font-mono font-semibold uppercase text-amber-300">Net Zero Target</p>
+            <p class="text-2xl font-extrabold text-white mt-1">2030 <span class="text-xs font-semibold text-emerald-300">Lifecycle</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 2: DESIGN PHILOSOPHY PILLARS
+         ========================================== -->
+    <section class="slide" data-chapter="02 / DESIGN ETHOS">
+      <div class="mb-8">
+        <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-2">Foundational Principles</p>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-luxury-gold">Three Pillars of Modern Apple Design</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-panel glass-panel-hover rounded-2xl p-7 flex flex-col justify-between">
+          <div>
+            <div class="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-300/50 flex items-center justify-center text-amber-200 font-mono text-sm font-bold mb-5">01</div>
+            <h3 class="text-xl font-bold text-amber-100 mb-2.5">Radical Reduction</h3>
+            <p class="text-sm text-slate-100 leading-relaxed">
+              Eliminating mechanical seams, bezels, and legacy ports until only the essential surface remains. Every millimeter of internal volume is sculpted around battery cells and thermal dissipation.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-700/80 flex items-center justify-between text-xs font-mono">
+            <span class="text-amber-300 font-semibold">EXEMPLAR</span>
+            <span class="text-white font-bold">iPad Pro M4 (5.1 mm)</span>
+          </div>
+        </div>
+
+        <div class="glass-panel glass-panel-hover rounded-2xl p-7 flex flex-col justify-between">
+          <div>
+            <div class="w-11 h-11 rounded-xl bg-sky-400/20 border border-sky-300/50 flex items-center justify-center text-sky-200 font-mono text-sm font-bold mb-5">02</div>
+            <h3 class="text-xl font-bold text-sky-100 mb-2.5">Silicon-Defined Form</h3>
+            <p class="text-sm text-slate-100 leading-relaxed">
+              Industrial design no longer waits for off-the-shelf processors. Custom Apple Silicon dictates thermal envelopes, allowing fanless enclosures and all-day battery life in impossibly thin profiles.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-700/80 flex items-center justify-between text-xs font-mono">
+            <span class="text-sky-300 font-semibold">EXEMPLAR</span>
+            <span class="text-white font-bold">M4 / A18 Pro Unified Memory</span>
+          </div>
+        </div>
+
+        <div class="glass-panel glass-panel-hover rounded-2xl p-7 flex flex-col justify-between">
+          <div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-400/20 border border-emerald-300/50 flex items-center justify-center text-emerald-200 font-mono text-sm font-bold mb-5">03</div>
+            <h3 class="text-xl font-bold text-emerald-100 mb-2.5">Tactile Honest Materials</h3>
+            <p class="text-sm text-slate-100 leading-relaxed">
+              Grade 5 aerospace titanium bonded to 100% recycled aluminum substructures via solid-state diffusion, paired with micro-textured nano-glass and ceramic shield formulations.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-700/80 flex items-center justify-between text-xs font-mono">
+            <span class="text-emerald-300 font-semibold">EXEMPLAR</span>
+            <span class="text-white font-bold">iPhone 16 Pro & Watch Ultra 2</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 3: METALLURGY & ENCLOSURE ENGINEERING
+         ========================================== -->
+    <section class="slide" data-chapter="03 / MATERIAL SCIENCE">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-5">
+          <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-2">Metallurgy & Optics</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-luxury-gold mb-4">
+            Engineered at the Atomic Boundary.
+          </h2>
+          <p class="text-sm text-slate-100 leading-relaxed mb-6">
+            Apple’s material breakthroughs merge structural rigidity with thermal conductivity. Click any material innovation below to inspect its engineering specification.
+          </p>
+
+          <div class="space-y-3">
+            <button onclick="selectMaterial(0)" class="mat-btn w-full text-left p-4 rounded-xl border-2 border-amber-400 bg-amber-400/15 transition flex items-center justify-between cursor-pointer shadow-md">
+              <div>
+                <p class="text-sm font-bold text-white">Grade 5 Titanium + Thermal Bond</p>
+                <p class="text-xs text-amber-100 mt-0.5">Solid-state diffusion onto recycled aluminum</p>
+              </div>
+              <span class="font-mono text-xs font-bold text-amber-300">01 →</span>
+            </button>
+            <button onclick="selectMaterial(1)" class="mat-btn w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/90 hover:border-amber-300/50 transition flex items-center justify-between cursor-pointer">
+              <div>
+                <p class="text-sm font-bold text-white">Tandem OLED & Nano-Texture Glass</p>
+                <p class="text-xs text-slate-200 mt-0.5">Dual-layer electroluminescence + nanometer etching</p>
+              </div>
+              <span class="font-mono text-xs font-bold text-slate-300">02 →</span>
+            </button>
+            <button onclick="selectMaterial(2)" class="mat-btn w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/90 hover:border-amber-300/50 transition flex items-center justify-between cursor-pointer">
+              <div>
+                <p class="text-sm font-bold text-white">3D-Laminated Singular Glass</p>
+                <p class="text-xs text-slate-200 mt-0.5">Optical-grade curved lens acting as sensor fascia</p>
+              </div>
+              <span class="font-mono text-xs font-bold text-slate-300">03 →</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Specification Inspector Card -->
+        <div class="lg:col-span-7">
+          <div id="materialDetailCard" class="glass-panel rounded-3xl p-8 border-2 border-amber-300/35 relative overflow-hidden">
+            <div class="flex items-center justify-between mb-6">
+              <span id="matTag" class="px-3.5 py-1 rounded-full text-xs font-mono font-bold bg-amber-400/20 text-amber-200 border border-amber-300/50">
+                iPHONE 16 PRO • WATCH ULTRA 2
+              </span>
+              <span id="matMetric" class="text-2xl font-mono font-extrabold text-amber-300">45% Lighter Ring</span>
+            </div>
+            <h3 id="matTitle" class="text-2xl font-extrabold text-white mb-3">
+              Solid-State Diffusion Titanium Frame
+            </h3>
+            <p id="matDesc" class="text-sm sm:text-base text-slate-100 leading-relaxed mb-6">
+              Grade 5 Titanium possesses one of the highest strength-to-weight ratios of any metal. Using an industry-first thermomechanical process, Apple bonds the outer titanium band to a 100% recycled aluminum internal frame with a graphite-clad substructure, improving sustained thermal dissipation by up to 20%.
+            </p>
+            <div class="grid grid-cols-3 gap-4 pt-5 border-t border-slate-700">
+              <div>
+                <p class="text-xs font-mono font-semibold text-amber-300 uppercase">Surface Finish</p>
+                <p id="matSpec1" class="text-sm font-bold text-white mt-1">Micro-blasted PVD</p>
+              </div>
+              <div>
+                <p class="text-xs font-mono font-semibold text-amber-300 uppercase">Structural Core</p>
+                <p id="matSpec2" class="text-sm font-bold text-white mt-1">100% Recycled Al</p>
+              </div>
+              <div>
+                <p class="text-xs font-mono font-semibold text-amber-300 uppercase">Thermal Gain</p>
+                <p id="matSpec3" class="text-sm font-bold text-emerald-300 mt-1">+20% Sustained</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 4: LIVE INTERACTIVE SILICON CHART
+         ========================================== -->
+    <section class="slide" data-chapter="04 / LIVE BENCHMARK">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-6 gap-4">
+        <div>
+          <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-1.5">Interactive Data Visualization</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-luxury-gold">Apple Silicon Evolution (M1 → M4)</h2>
+          <p class="text-xs sm:text-sm text-slate-100 mt-1">Toggle metrics below to inspect architectural gains across four generations of custom silicon.</p>
+        </div>
+
+        <!-- Metric Switcher Buttons -->
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-900 p-1.5 rounded-xl border border-slate-700 self-start">
+          <button onclick="updateSiliconChart('npu')" id="chartBtn-npu" class="chart-tab px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 transition cursor-pointer">
+            Neural Engine (TOPS)
+          </button>
+          <button onclick="updateSiliconChart('perfWatt')" id="chartBtn-perfWatt" class="chart-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-100 hover:text-amber-300 transition cursor-pointer">
+            CPU Perf / Watt Index
+          </button>
+          <button onclick="updateSiliconChart('transistors')" id="chartBtn-transistors" class="chart-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-100 hover:text-amber-300 transition cursor-pointer">
+            Base Chip Transistors (B)
+          </button>
+          <button onclick="updateSiliconChart('bandwidth')" id="chartBtn-bandwidth" class="chart-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-100 hover:text-amber-300 transition cursor-pointer">
+            Memory Bandwidth (GB/s)
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart Panel -->
+      <div class="glass-panel rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700">
+          <div>
+            <h3 id="chartHeading" class="text-lg sm:text-xl font-extrabold text-white">Neural Engine AI Compute Throughput</h3>
+            <p id="chartSubheading" class="text-xs sm:text-sm text-slate-200 mt-0.5">Trillions of Operations Per Second (TOPS) — 3.45× leap from M1 to M4</p>
+          </div>
+          <span id="chartUnitBadge" class="px-3 py-1 rounded-md bg-amber-400/20 border border-amber-300/50 text-amber-200 font-mono font-bold text-xs">
+            Unit: TOPS
+          </span>
+        </div>
+
+        <!-- Animated Horizontal Bars -->
+        <div id="chartBarsContainer" class="space-y-5"></div>
+
+        <!-- Architectural Footnote -->
+        <div class="mt-6 pt-4 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-100">
+          <span id="chartInsightText" class="font-medium text-amber-200">M4 delivers 38 TOPS—60× faster than Apple’s first Neural Engine in the A11 Bionic.</span>
+          <span class="font-mono text-xs text-slate-300">Process Node: 5nm (M1/M2) → 3nm (M3/M4)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 5: SPATIAL COMPUTING & VISION PRO
+         ========================================== -->
+    <section class="slide" data-chapter="05 / SPATIAL UI">
+      <div class="mb-8">
+        <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-2">Apple Vision Pro & visionOS</p>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-luxury-gold">Designing With Light, Depth & Gaze</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div class="md:col-span-7 glass-panel rounded-2xl p-7 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-mono font-bold text-sky-300 uppercase">Spatial Interface Language</span>
+            <h3 class="text-2xl font-extrabold text-white mt-1 mb-3">Glass Materiality That Reacts to Your Room</h3>
+            <p class="text-sm sm:text-base text-slate-100 leading-relaxed mb-6">
+              Rather than opaque VR panels that isolate the user, visionOS introduces dynamic adaptive glass surfaces. Windows cast subtle real-time shadows onto physical tables and absorb ambient color temperature from your room so digital content feels physically present.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3.5 pt-5 border-t border-slate-700">
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700">
+              <p class="text-xs font-mono font-semibold text-amber-300">Photon-to-Photon</p>
+              <p class="text-xl font-extrabold text-white mt-1">12 ms</p>
+              <p class="text-xs text-slate-200 mt-0.5">R1 Co-Processor Latency</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700">
+              <p class="text-xs font-mono font-semibold text-amber-300">Micro-OLED</p>
+              <p class="text-xl font-extrabold text-white mt-1">7.5 μm</p>
+              <p class="text-xs text-slate-200 mt-0.5">64 pixels per iPhone pixel</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700">
+              <p class="text-xs font-mono font-semibold text-amber-300">Sensor Array</p>
+              <p class="text-xl font-extrabold text-white mt-1">12 Cams</p>
+              <p class="text-xs text-slate-200 mt-0.5">+ 5 Sensors & 6 Mics</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="md:col-span-5 space-y-4">
+          <div class="glass-panel rounded-2xl p-5">
+            <h4 class="text-base font-bold text-amber-200 mb-1">Eyes & Pinch as Primary Cursor</h4>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              High-speed IR cameras project invisible LED light patterns onto each iris, enabling sub-millimeter gaze targeting without holding hardware controllers.
+            </p>
+          </div>
+          <div class="glass-panel rounded-2xl p-5">
+            <h4 class="text-base font-bold text-sky-200 mb-1">Spatial Audio Ray Tracing</h4>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              Dual-driver audio pods analyze the acoustic reflectivity of your room’s walls and furniture to match sound decay to the visual environment.
+            </p>
+          </div>
+          <div class="glass-panel rounded-2xl p-5">
+            <h4 class="text-base font-bold text-emerald-200 mb-1">External Battery Counterbalance</h4>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              Offloading the battery cell into a braided aluminum tether removes ~353g from the facial bridge for extended wearability.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 6: FLUID HARDWARE + SOFTWARE CHOREOGRAPHY
+         ========================================== -->
+    <section class="slide" data-chapter="06 / INTERACTION">
+      <div class="mb-8">
+        <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-2">Hardware × Software Co-Design</p>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-luxury-gold">Turning Physical Cutouts Into Living UI</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Dynamic Island -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="w-full h-11 rounded-full bg-black border border-amber-300/40 flex items-center justify-between px-4 mb-6 shadow-inner">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs font-mono font-semibold text-white">Waveform Active</span>
+              </div>
+              <span class="text-xs font-mono font-bold text-amber-300">02:14</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-amber-100 mb-2">Dynamic Island</h3>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              Instead of hiding the TrueDepth camera array, Apple wrapped real-time spring-physics animations and sub-pixel anti-aliasing around the pill cutout, turning static silicon housing into a fluid secondary display.
+            </p>
+          </div>
+          <p class="text-xs font-mono font-semibold text-amber-300 mt-5 pt-3 border-t border-slate-700">PHYSICS: CoreAnimation Spring Curves</p>
+        </div>
+
+        <!-- Camera Control -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="w-full h-11 rounded-xl bg-black border border-sky-300/40 flex items-center justify-center gap-1.5 px-4 mb-6">
+              <span class="w-1 h-3 bg-slate-500 rounded"></span>
+              <span class="w-1 h-4 bg-slate-400 rounded"></span>
+              <span class="w-1.5 h-6 bg-amber-400 rounded"></span>
+              <span class="w-1 h-4 bg-slate-400 rounded"></span>
+              <span class="w-1 h-3 bg-slate-500 rounded"></span>
+              <span class="ml-3 text-xs font-mono font-bold text-amber-300">f/2.8 • 50mm</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-sky-100 mb-2">Capacitive Camera Control</h3>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              Recessed flush into the titanium frame beneath a sapphire crystal cap, it combines a high-precision force sensor, capacitive touch array, and Taptic Engine feedback to replicate a mechanical DSLR shutter.
+            </p>
+          </div>
+          <p class="text-xs font-mono font-semibold text-sky-300 mt-5 pt-3 border-t border-slate-700">STACK: Sapphire + Force Sensor + Taptic</p>
+        </div>
+
+        <!-- Apple Pencil Pro Squeeze & Barrel Roll -->
+        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="w-full h-11 rounded-xl bg-black border border-purple-300/40 flex items-center justify-between px-4 mb-6">
+              <span class="text-xs font-mono font-semibold text-purple-200">Gyro Barrel Roll</span>
+              <span class="px-2 py-0.5 rounded bg-purple-500/30 text-purple-100 font-mono font-bold text-xs">360° Axis</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-purple-100 mb-2">Apple Pencil Pro Haptics</h3>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              An internal squeeze strain gauge and custom haptic actuator confirm tool switches silently, while a solid-state gyroscope rotates shaped brush previews even before the nib touches the glass.
+            </p>
+          </div>
+          <p class="text-xs font-mono font-semibold text-purple-300 mt-5 pt-3 border-t border-slate-700">LATENCY: Sub-9ms at 120Hz ProMotion</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 7: APPLE INTELLIGENCE & PRIVACY DESIGN
+         ========================================== -->
+    <section class="slide" data-chapter="07 / APPLE INTELLIGENCE">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-6">
+          <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-2">Privacy-First Generative Architecture</p>
+          <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-luxury-gold mb-5">
+            Personal Context Without Compromising Privacy.
+          </h2>
+          <p class="text-sm sm:text-base text-slate-100 leading-relaxed mb-6">
+            Apple Intelligence is architected from the silicon up so personal semantic indexing happens locally on your A18 Pro or M-series device. When a query requires larger parameter models, Private Cloud Compute extends the iPhone’s hardware security model into custom Apple Silicon servers.
+          </p>
+          <div class="flex flex-wrap gap-3.5">
+            <div class="px-4 py-2.5 rounded-xl bg-slate-900 border border-amber-300/35">
+              <p class="text-xs font-mono font-semibold text-amber-300">On-Device Foundation Model</p>
+              <p class="text-sm font-extrabold text-white mt-0.5">~3B Parameters (Quantized)</p>
+            </div>
+            <div class="px-4 py-2.5 rounded-xl bg-slate-900 border border-emerald-300/35">
+              <p class="text-xs font-mono font-semibold text-emerald-300">Server Retention Policy</p>
+              <p class="text-sm font-extrabold text-emerald-200 mt-0.5">Zero Persistent Storage</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Tier Architecture Diagram -->
+        <div class="lg:col-span-6 space-y-3.5">
+          <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-amber-400">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-amber-300 font-bold">TIER 01 • LOCAL SILICON</span>
+              <span class="text-xs font-mono font-semibold text-slate-200">0 ms Network Hop</span>
+            </div>
+            <h4 class="text-base font-extrabold text-white mt-1">On-Device Semantic Index & LoRA Adapters</h4>
+            <p class="text-xs sm:text-sm text-slate-100 mt-1">
+              Fine-tuned dynamic adapters swap into unified memory in milliseconds for notification summaries, Writing Tools, and photographic cleanup.
+            </p>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-sky-400">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-sky-300 font-bold">TIER 02 • CRYPTOGRAPHIC ATTESTATION</span>
+              <span class="text-xs font-mono font-semibold text-slate-200">Verifiable Build</span>
+            </div>
+            <h4 class="text-base font-extrabold text-white mt-1">Stateless Private Cloud Compute</h4>
+            <p class="text-xs sm:text-sm text-slate-100 mt-1">
+              Your device refuses to dispatch a request unless the server cluster’s software image is cryptographically logged on a public transparency ledger.
+            </p>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-emerald-400">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-emerald-300 font-bold">TIER 03 • HARDWARE ENCLAVE</span>
+              <span class="text-xs font-mono font-semibold text-slate-200">No Admin Shell</span>
+            </div>
+            <h4 class="text-base font-extrabold text-white mt-1">Ephemeral RAM-Only Execution</h4>
+            <p class="text-xs sm:text-sm text-slate-100 mt-1">
+              Encryption keys are wiped the instant your response returns; servers contain no persistent writable media or remote debugging interfaces.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 8: SUSTAINABILITY & REPAIRABILITY
+         ========================================== -->
+    <section class="slide" data-chapter="08 / APPLE 2030">
+      <div class="mb-8">
+        <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300 mb-2">Circular Industrial Engineering</p>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-luxury-gold">Longevity Is the Ultimate Sustainability</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+        <div class="glass-panel rounded-2xl p-6">
+          <p class="text-3xl sm:text-4xl font-extrabold text-emerald-300 font-mono">100%</p>
+          <p class="text-base font-extrabold text-white mt-2">Recycled Cobalt</p>
+          <p class="text-xs sm:text-sm text-slate-100 mt-1">In all Apple-designed batteries across iPhone 16, MacBook, and iPad lines.</p>
+        </div>
+        <div class="glass-panel rounded-2xl p-6">
+          <p class="text-3xl sm:text-4xl font-extrabold text-amber-300 font-mono">95%+</p>
+          <p class="text-base font-extrabold text-white mt-2">Recycled Titanium</p>
+          <p class="text-xs sm:text-sm text-slate-100 mt-1">Used in Apple Watch Series 10 & Ultra 2 cases alongside 100% clean electricity.</p>
+        </div>
+        <div class="glass-panel rounded-2xl p-6">
+          <p class="text-3xl sm:text-4xl font-extrabold text-sky-300 font-mono">0%</p>
+          <p class="text-base font-extrabold text-white mt-2">Plastic Packaging</p>
+          <p class="text-xs sm:text-sm text-slate-100 mt-1">100% fiber-based molded pulp retail boxes with smaller shipping footprints.</p>
+        </div>
+        <div class="glass-panel rounded-2xl p-6">
+          <p class="text-3xl sm:text-4xl font-extrabold text-purple-300 font-mono">9V</p>
+          <p class="text-base font-extrabold text-white mt-2">Ionic Debonding</p>
+          <p class="text-xs sm:text-sm text-slate-100 mt-1">Electrically debonded battery adhesive in iPhone 16 speeds clean service removal.</p>
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 border-l-emerald-400">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-white">First Carbon-Neutral Mac: Mac mini (M4)</h3>
+          <p class="text-xs sm:text-sm text-slate-100 mt-1">
+            By shrinking the footprint to a 5×5-inch square and utilizing over 50% recycled content overall, Mac mini reduces its lifecycle greenhouse gas emissions by over 80%.
+          </p>
+        </div>
+        <span class="px-3.5 py-1.5 rounded-full bg-emerald-400/20 border border-emerald-300/50 text-emerald-200 font-mono font-bold text-xs shrink-0">
+          Verified Carbon Neutral
+        </span>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SLIDE 9: INTERACTIVE KNOWLEDGE QUIZ
+         ========================================== -->
+    <section class="slide" data-chapter="09 / INTERACTIVE QUIZ">
+      <div class="max-w-3xl mx-auto w-full">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300">Interactive Knowledge Check</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-luxury-gold mt-0.5">Test Your Apple Engineering IQ</h2>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="quizScorePill" class="px-3.5 py-1.5 rounded-full bg-slate-900 border border-amber-300/40 font-mono font-bold text-xs text-amber-200">
+              Score: 0 / 4
+            </span>
+            <button onclick="resetQuiz()" class="text-xs font-mono font-semibold text-slate-200 hover:text-amber-300 underline cursor-pointer">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Quiz Card -->
+        <div id="quizCard" class="glass-panel rounded-3xl p-6 sm:p-8 border-2 border-amber-300/30">
+          <div class="flex items-center justify-between text-xs font-mono font-bold text-amber-300 mb-3">
+            <span id="quizQuestionCounter">QUESTION 01 OF 04</span>
+            <span id="quizStatusLabel" class="text-sky-300">Select an answer</span>
+          </div>
+
+          <h3 id="quizQuestionText" class="text-lg sm:text-xl font-extrabold text-white mb-6 leading-snug">
+            Loading question...
+          </h3>
+
+          <!-- Options Container -->
+          <div id="quizOptionsContainer" class="space-y-3 mb-6"></div>
+
+          <!-- Explanation & Next Button -->
+          <div id="quizFeedbackBox" class="hidden pt-4 border-t border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <p id="quizExplanation" class="text-xs sm:text-sm text-slate-100 leading-relaxed flex-1 font-medium"></p>
+            <button id="quizNextBtn" onclick="nextQuizQuestion()" class="px-4 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-bold text-xs hover:bg-amber-300 transition shrink-0 cursor-pointer">
+              Next Question →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <footer class="relative z-40 px-6 sm:px-12 py-4 flex items-center justify-between border-t border-amber-200/15 bg-obsidian-950/60 backdrop-blur-md">
+    <!-- Slide Counter -->
+    <div class="flex items-center gap-3">
+      <span id="slideCounterText" class="font-mono font-bold text-xs text-amber-300">01 / 09</span>
+      <span class="hidden sm:inline text-xs text-slate-500">•</span>
+      <span class="hidden sm:inline text-xs text-slate-200">Use <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-600 text-amber-200 font-mono text-[10px]">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-600 text-amber-200 font-mono text-[10px]">→</kbd> or <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-600 text-amber-200 font-mono text-[10px]">Space</kbd> to navigate</span>
+    </div>
+
+    <!-- Dot Indicators -->
+    <div id="slideDotsContainer" class="flex items-center gap-2"></div>
+
+    <!-- Arrow Buttons -->
+    <div class="flex items-center gap-2.5">
+      <button id="prevSlideBtn" class="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-white disabled:opacity-30 transition cursor-pointer">
+        ← Prev
+      </button>
+      <button id="nextSlideBtn" class="px-4 py-1.5 rounded-xl bg-amber-400 text-slate-950 hover:bg-amber-300 text-xs font-bold disabled:opacity-30 transition cursor-pointer">
+        Next →
+      </button>
+    </div>
+  </footer>
+
+  <!-- SLIDE OVERVIEW MODAL (GRID DRAWER) -->
+  <div id="overviewModal" class="fixed inset-0 z-50 hidden bg-obsidian-950/95 backdrop-blur-xl p-6 sm:p-12 overflow-y-auto">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <p class="text-xs font-mono font-semibold uppercase tracking-widest text-amber-300">Deck Navigator</p>
+          <h3 class="text-2xl font-extrabold text-white">All Slides (9)</h3>
+        </div>
+        <button id="closeOverviewBtn" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-mono font-bold text-white cursor-pointer">
+          ESC to Close ✕
+        </button>
+      </div>
+      <div id="overviewGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+  </div>
+
+  <!-- PRESENTATION LOGIC -->
+  <script>
+    /****************************************************************
+     * 1. SLIDE DECK ENGINE & KEYBOARD NAVIGATION
+     ****************************************************************/
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+
+    const topProgressBar = document.getElementById('topProgressBar');
+    const slideCounterText = document.getElementById('slideCounterText');
+    const chapterText = document.getElementById('chapterText');
+    const dotsContainer = document.getElementById('slideDotsContainer');
+    const prevBtn = document.getElementById('prevSlideBtn');
+    const nextBtn = document.getElementById('nextSlideBtn');
+
+    const slideTitles = [
+      'The Architecture of Restraint',
+      'Three Pillars of Modern Apple Design',
+      'Metallurgy & Atomic Enclosure Engineering',
+      'Live Benchmark: Apple Silicon M1 → M4',
+      'Spatial Computing & Apple Vision Pro',
+      'Fluid Hardware × Software Choreography',
+      'Apple Intelligence & Private Cloud Compute',
+      'Apple 2030 & Circular Engineering',
+      'Interactive Engineering Quiz'
+    ];
+
+    function initDotsAndOverview() {
+      dotsContainer.innerHTML = slides.map((_, idx) => `
+        <button
+          onclick="goToSlide(${idx})"
+          class="slide-dot h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === 0 ? 'w-7 bg-amber-400' : 'w-2 bg-slate-600 hover:bg-amber-200'}"
+          title="Slide ${idx + 1}: ${slideTitles[idx]}"
+        ></button>
+      `).join('');
+
+      const overviewGrid = document.getElementById('overviewGrid');
+      overviewGrid.innerHTML = slides.map((s, idx) => `
+        <button
+          onclick="goToSlide(${idx}); toggleOverview(false);"
+          class="text-left p-5 rounded-2xl glass-panel glass-panel-hover cursor-pointer flex flex-col justify-between h-32"
+        >
+          <span class="text-xs font-mono font-bold text-amber-300">${s.dataset.chapter}</span>
+          <div>
+            <p class="text-sm font-extrabold text-white line-clamp-1">${slideTitles[idx]}</p>
+            <p class="text-xs font-mono text-slate-300 mt-1">Slide 0${idx + 1}</p>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    window.goToSlide = function(index) {
+      if (index < 0 || index >= totalSlides) return;
+      slides[currentSlide].classList.remove('active');
+      currentSlide = index;
+      slides[currentSlide].classList.add('active');
+
+      // Update Top Progress & Counter
+      const pct = ((currentSlide + 1) / totalSlides) * 100;
+      topProgressBar.style.width = `${pct}%`;
+      slideCounterText.textContent = `0${currentSlide + 1} / 0${totalSlides}`;
+      chapterText.textContent = slides[currentSlide].dataset.chapter;
+
+      // Update Dots
+      document.querySelectorAll('.slide-dot').forEach((dot, idx) => {
+        dot.className = `slide-dot h-2 rounded-full transition-all duration-300 cursor-pointer ${
+          idx === currentSlide ? 'w-7 bg-amber-400' : 'w-2 bg-slate-600 hover:bg-amber-200'
+        }`;
+      });
+
+      prevBtn.disabled = currentSlide === 0;
+      nextBtn.disabled = currentSlide === totalSlides - 1;
+
+      // Re-animate chart bars when entering Slide 4
+      if (currentSlide === 3) {
+        updateSiliconChart(activeChartMetric);
+      }
+    };
+
+    prevBtn.addEventListener('click', () => goToSlide(currentSlide - 1));
+    nextBtn.addEventListener('click', () => goToSlide(currentSlide + 1));
+
+    // Keyboard Navigation (ArrowLeft, ArrowRight, Space, G, F)
+    window.addEventListener('keydown', (e) => {
+      const overviewOpen = !document.getElementById('overviewModal').classList.contains('hidden');
+
+      if (e.key === 'Escape' && overviewOpen) {
+        toggleOverview(false);
+        return;
+      }
+      if (overviewOpen) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        goToSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        goToSlide(currentSlide - 1);
+      } else if (e.key.toLowerCase() === 'g') {
+        toggleOverview(true);
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    // Overview Drawer & Fullscreen
+    function toggleOverview(show) {
+      const modal = document.getElementById('overviewModal');
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('overviewBtn').addEventListener('click', () => toggleOverview(true));
+    document.getElementById('closeOverviewBtn').addEventListener('click', () => toggleOverview(false));
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+
+    /****************************************************************
+     * 2. SLIDE 3: INTERACTIVE MATERIAL INSPECTOR
+     ****************************************************************/
+    const materialsData = [
+      {
+        tag: 'iPHONE 16 PRO • WATCH ULTRA 2',
+        metric: '45% Lighter Ring',
+        title: 'Solid-State Diffusion Titanium Frame',
+        desc: 'Grade 5 Titanium possesses one of the highest strength-to-weight ratios of any metal. Using an industry-first thermomechanical process, Apple bonds the outer titanium band to a 100% recycled aluminum internal frame with a graphite-clad substructure, improving sustained thermal dissipation by up to 20%.',
+        spec1: 'Micro-blasted PVD',
+        spec2: '100% Recycled Al',
+        spec3: '+20% Sustained'
+      },
+      {
+        tag: 'iPAD PRO M4 • PRO DISPLAY XDR',
+        metric: '1600 Nits HDR',
+        title: 'Ultra Retina XDR Tandem OLED + Nano-Texture',
+        desc: 'By stacking two organic light-emitting diode panels in tandem, iPad Pro achieves 1,000 nits of full-screen sustained brightness and sub-millisecond specular control. Optional nano-texture glass is etched at the nanometer scale to scatter ambient glare while preserving image contrast.',
+        spec1: 'Dual-Layer OLED',
+        spec2: '2,000,000:1 Contrast',
+        spec3: '5.1 mm Enclosure'
+      },
+      {
+        tag: 'APPLE VISION PRO',
+        metric: '23M Pixels',
+        title: 'Three-Dimensionally Formed Laminated Glass',
+        desc: 'A single piece of three-dimensionally formed, polished laminated glass flows seamlessly into a custom aluminum alloy frame that curves around the user’s face. The glass acts as an optical lens for the 12 cameras and LiDAR scanner underneath.',
+        spec1: 'Optical Lamination',
+        spec2: 'Modular Light Seal',
+        spec3: '3D Knit Headband'
+      }
+    ];
+
+    window.selectMaterial = function(idx) {
+      const m = materialsData[idx];
+      document.getElementById('matTag').textContent = m.tag;
+      document.getElementById('matMetric').textContent = m.metric;
+      document.getElementById('matTitle').textContent = m.title;
+      document.getElementById('matDesc').textContent = m.desc;
+      document.getElementById('matSpec1').textContent = m.spec1;
+      document.getElementById('matSpec2').textContent = m.spec2;
+      document.getElementById('matSpec3').textContent = m.spec3;
+
+      document.querySelectorAll('.mat-btn').forEach((btn, i) => {
+        if (i === idx) {
+          btn.className = 'mat-btn w-full text-left p-4 rounded-xl border-2 border-amber-400 bg-amber-400/15 transition flex items-center justify-between cursor-pointer shadow-md';
+        } else {
+          btn.className = 'mat-btn w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/90 hover:border-amber-300/50 transition flex items-center justify-between cursor-pointer';
+        }
+      });
+    };
+
+    /****************************************************************
+     * 3. SLIDE 4: LIVE INTERACTIVE SILICON CHART
+     ****************************************************************/
+    const siliconDatasets = {
+      npu: {
+        heading: 'Neural Engine AI Compute Throughput',
+        subheading: 'Trillions of Operations Per Second (TOPS) — 3.45× leap from M1 to M4',
+        unit: 'TOPS',
+        max: 40,
+        insight: 'M4 delivers 38 TOPS—60× faster than Apple’s first Neural Engine in A11 Bionic.',
+        bars: [
+          { label: 'M1 (2020 • 5nm)', value: 11, display: '11 TOPS', color: 'from-slate-400 to-slate-200' },
+          { label: 'M2 (2022 • 5nm+)', value: 15.8, display: '15.8 TOPS', color: 'from-sky-400 to-sky-300' },
+          { label: 'M3 (2023 • 3nm)', value: 18, display: '18 TOPS', color: 'from-indigo-400 to-purple-300' },
+          { label: 'M4 (2024 • 3nm 2nd Gen)', value: 38, display: '38 TOPS', color: 'from-amber-300 via-amber-400 to-orange-400' }
+        ]
+      },
+      perfWatt: {
+        heading: 'CPU Performance per Watt Index',
+        subheading: 'Normalized efficiency relative to M1 baseline (1.0×) at iso-power',
+        unit: 'Relative Multiplier',
+        max: 2.2,
+        insight: 'M4 matches M2 peak performance while drawing half the power.',
+        bars: [
+          { label: 'M1 (2020 • 8-Core)', value: 1.0, display: '1.00× Baseline', color: 'from-slate-400 to-slate-200' },
+          { label: 'M2 (2022 • 8-Core)', value: 1.18, display: '1.18× Efficiency', color: 'from-sky-400 to-sky-300' },
+          { label: 'M3 (2023 • 8-Core)', value: 1.45, display: '1.45× Efficiency', color: 'from-indigo-400 to-purple-300' },
+          { label: 'M4 (2024 • 10-Core)', value: 1.95, display: '1.95× Efficiency', color: 'from-emerald-300 to-amber-300' }
+        ]
+      },
+      transistors: {
+        heading: 'Base SoC Transistor Count',
+        subheading: 'Billions of transistors packed onto a single monolithic die',
+        unit: 'Billion Transistors',
+        max: 30,
+        insight: 'Second-generation 3nm extreme ultraviolet (EUV) lithography packs 28 billion transistors into M4.',
+        bars: [
+          { label: 'M1 (2020)', value: 16, display: '16.0 Billion', color: 'from-slate-400 to-slate-200' },
+          { label: 'M2 (2022)', value: 20, display: '20.0 Billion', color: 'from-sky-400 to-sky-300' },
+          { label: 'M3 (2023)', value: 25, display: '25.0 Billion', color: 'from-indigo-400 to-purple-300' },
+          { label: 'M4 (2024)', value: 28, display: '28.0 Billion', color: 'from-amber-300 to-rose-400' }
+        ]
+      },
+      bandwidth: {
+        heading: 'Unified Memory Bandwidth (Base Chip)',
+        subheading: 'Low-latency shared memory pool accessible by CPU, GPU, and Neural Engine',
+        unit: 'GB/s',
+        max: 140,
+        insight: 'LPDDR5X unified memory on M4 boosts base memory bandwidth to 120 GB/s (up to 546 GB/s on M4 Max).',
+        bars: [
+          { label: 'M1 (LPDDR4X)', value: 68.25, display: '68.3 GB/s', color: 'from-slate-400 to-slate-200' },
+          { label: 'M2 (LPDDR5)', value: 100, display: '100.0 GB/s', color: 'from-sky-400 to-sky-300' },
+          { label: 'M3 (LPDDR5)', value: 100, display: '100.0 GB/s', color: 'from-indigo-400 to-purple-300' },
+          { label: 'M4 (LPDDR5X)', value: 120, display: '120.0 GB/s', color: 'from-amber-300 to-sky-300' }
+        ]
+      }
+    };
+
+    let activeChartMetric = 'npu';
+
+    window.updateSiliconChart = function(metricKey) {
+      activeChartMetric = metricKey;
+      const data = siliconDatasets[metricKey];
+
+      // Update Tab styles
+      document.querySelectorAll('.chart-tab').forEach(btn => {
+        btn.className = 'chart-tab px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-100 hover:text-amber-300 transition cursor-pointer';
+      });
+      const activeBtn = document.getElementById(`chartBtn-${metricKey}`);
+      if (activeBtn) {
+        activeBtn.className = 'chart-tab px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 transition cursor-pointer';
+      }
+
+      document.getElementById('chartHeading').textContent = data.heading;
+      document.getElementById('chartSubheading').textContent = data.subheading;
+      document.getElementById('chartUnitBadge').textContent = `Unit: ${data.unit}`;
+      document.getElementById('chartInsightText').textContent = data.insight;
+
+      const container = document.getElementById('chartBarsContainer');
+      container.innerHTML = data.bars.map((b, i) => `
+        <div>
+          <div class="flex items-center justify-between text-xs sm:text-sm mb-1.5">
+            <span class="font-bold text-white">${b.label}</span>
+            <span class="font-mono font-extrabold text-amber-300">${b.display}</span>
+          </div>
+          <div class="w-full h-4 rounded-full bg-slate-800 border border-slate-700 overflow-hidden p-0.5">
+            <div id="barFill-${i}" class="chart-bar-fill h-full rounded-full bg-gradient-to-r ${b.color}" style="width: 0%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      // Trigger smooth width animation on next frame
+      requestAnimationFrame(() => {
+        data.bars.forEach((b, i) => {
+          const el = document.getElementById(`barFill-${i}`);
+          if (el) {
+            const widthPct = Math.min(100, Math.round((b.value / data.max) * 100));
+            el.style.width = `${widthPct}%`;
+          }
+        });
+      });
+    };
+
+    /****************************************************************
+     * 4. SLIDE 9: INTERACTIVE QUIZ ENGINE
+     ****************************************************************/
+    const quizQuestions = [
+      {
+        q: 'How does Apple achieve 1,000 nits of full-screen sustained brightness in the 5.1 mm iPad Pro (M4)?',
+        options: [
+          'Mini-LED local dimming zones with quantum dot film',
+          'Tandem OLED architecture stacking two OLED panels together',
+          'Micro-OLED on silicon backplanes borrowed from Vision Pro',
+          'High-voltage single-layer AMOLED with active fan cooling'
+        ],
+        correct: 1,
+        explanation: 'Correct! Ultra Retina XDR uses Tandem OLED—combining the light of two stacked OLED panels for 1,000 nits full-screen and 1,600 nits peak HDR brightness.'
+      },
+      {
+        q: 'What process bonds the Grade 5 titanium band to the recycled aluminum internal frame on iPhone Pro?',
+        options: [
+          'Cyanoacrylate structural epoxy resin',
+          'Ultrasonic laser seam welding',
+          'Solid-state thermomechanical diffusion bonding',
+          'CNC interlocking dovetail rivets'
+        ],
+        correct: 2,
+        explanation: 'Spot on. Apple uses an industry-first solid-state diffusion process that creates a high-strength molecular bond between titanium and aluminum.'
+      },
+      {
+        q: 'What is the dedicated photon-to-photon latency of the R1 sensor co-processor in Apple Vision Pro?',
+        options: [
+          '12 milliseconds (8× faster than the blink of an eye)',
+          '45 milliseconds',
+          '100 milliseconds',
+          '1 millisecond'
+        ],
+        correct: 0,
+        explanation: 'Exactly right. The R1 chip streams images from 12 cameras, 5 sensors, and 6 microphones to the displays within 12 milliseconds.'
+      },
+      {
+        q: 'Which Mac became Apple’s first verified carbon-neutral computer across its entire lifecycle?',
+        options: [
+          'MacBook Air 15-inch (M3)',
+          'Mac Studio (M2 Ultra)',
+          'Mac mini (M4, 5×5-inch enclosure)',
+          'iMac 24-inch (M1)'
+        ],
+        correct: 2,
+        explanation: 'Correct! The redesigned 5×5-inch Mac mini with M4 cuts lifecycle greenhouse gas emissions by over 80% and is Apple’s first carbon-neutral Mac.'
+      }
+    ];
+
+    let quizIdx = 0;
+    let quizScore = 0;
+    let quizAnswered = false;
+
+    function renderQuizQuestion() {
+      const item = quizQuestions[quizIdx];
+      quizAnswered = false;
+
+      document.getElementById('quizQuestionCounter').textContent = `QUESTION 0${quizIdx + 1} OF 0${quizQuestions.length}`;
+      document.getElementById('quizStatusLabel').textContent = 'Select an answer';
+      document.getElementById('quizStatusLabel').className = 'text-sky-300 font-bold';
+      document.getElementById('quizQuestionText').textContent = item.q;
+      document.getElementById('quizScorePill').textContent = `Score: ${quizScore} / ${quizQuestions.length}`;
+      document.getElementById('quizFeedbackBox').classList.add('hidden');
+
+      const optsContainer = document.getElementById('quizOptionsContainer');
+      optsContainer.innerHTML = item.options.map((opt, idx) => `
+        <button
+          onclick="answerQuiz(${idx})"
+          id="quizOpt-${idx}"
+          class="w-full text-left p-4 rounded-2xl border border-slate-700 bg-slate-900/90 hover:border-amber-300/60 hover:bg-slate-800 transition flex items-center justify-between gap-3 cursor-pointer"
+        >
+          <span class="text-xs sm:text-sm font-semibold text-white">${opt}</span>
+          <span class="font-mono text-xs font-bold text-amber-300">0${idx + 1}</span>
+        </button>
+      `).join('');
+    }
+
+    window.answerQuiz = function(selectedIdx) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const item = quizQuestions[quizIdx];
+      const isCorrect = selectedIdx === item.correct;
+      if (isCorrect) quizScore++;
+
+      document.getElementById('quizScorePill').textContent = `Score: ${quizScore} / ${quizQuestions.length}`;
+      const statusLabel = document.getElementById('quizStatusLabel');
+      statusLabel.textContent = isCorrect ? '✓ Correct Answer' : '✕ Not Quite';
+      statusLabel.className = isCorrect ? 'text-emerald-300 font-extrabold' : 'text-rose-300 font-extrabold';
+
+      item.options.forEach((_, idx) => {
+        const btn = document.getElementById(`quizOpt-${idx}`);
+        if (idx === item.correct) {
+          btn.className = 'w-full text-left p-4 rounded-2xl border-2 border-emerald-400 bg-emerald-500/20 flex items-center justify-between gap-3';
+        } else if (idx === selectedIdx && !isCorrect) {
+          btn.className = 'w-full text-left p-4 rounded-2xl border-2 border-rose-400 bg-rose-500/20 flex items-center justify-between gap-3';
+        } else {
+          btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-800 bg-slate-900/40 opacity-55 flex items-center justify-between gap-3';
+        }
+      });
+
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+      document.getElementById('quizExplanation').textContent = item.explanation;
+      const nextBtn = document.getElementById('quizNextBtn');
+      nextBtn.textContent = quizIdx < quizQuestions.length - 1 ? 'Next Question →' : 'View Final Score →';
+      feedbackBox.classList.remove('hidden');
+    };
+
+    window.nextQuizQuestion = function() {
+      if (quizIdx < quizQuestions.length - 1) {
+        quizIdx++;
+        renderQuizQuestion();
+      } else {
+        const optsContainer = document.getElementById('quizOptionsContainer');
+        document.getElementById('quizQuestionCounter').textContent = 'COMPLETED';
+        document.getElementById('quizStatusLabel').textContent = 'Assessment Complete';
+        document.getElementById('quizQuestionText').textContent = `You scored ${quizScore} out of ${quizQuestions.length} (${Math.round((quizScore / quizQuestions.length) * 100)}%)`;
+        optsContainer.innerHTML = `
+          <div class="p-5 rounded-2xl bg-slate-900 border border-amber-300/40 text-sm text-white leading-relaxed font-medium">
+            ${quizScore === quizQuestions.length
+              ? 'Masterclass level! You have a sharp command of Apple’s industrial metallurgy, Tandem OLED physics, spatial computing latency, and carbon-neutral hardware engineering.'
+              : 'Solid run! Click "Reset" in the top-right corner of the quiz to test yourself again or use the arrow keys to review earlier slides.'}
+          </div>
+        `;
+        document.getElementById('quizFeedbackBox').classList.add('hidden');
+      }
+    };
+
+    window.resetQuiz = function() {
+      quizIdx = 0;
+      quizScore = 0;
+      renderQuizQuestion();
+    };
+
+    /****************************************************************
+     * 5. INITIALIZE DECK
+     ****************************************************************/
+    initDotsAndOverview();
+    updateSiliconChart('npu');
+    renderQuizQuestion();
+    goToSlide(0);
+  </script>
+</body>
+</html>

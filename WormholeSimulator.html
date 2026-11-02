@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aethelgard — Interactive 3D Relativistic Wormhole & Spacetime Bridge</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    * {
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030408;
+      color: #f8fafc;
+    }
+    #canvasContainer {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+    .hud-glass {
+      background: rgba(11, 14, 23, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(251, 191, 36, 0.24);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+    /* Custom Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 5px;
+      background: rgba(148, 163, 184, 0.25);
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #fbbf24;
+      cursor: pointer;
+      border: 2px solid #090d16;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    /* Custom Scrollbar for Control Panel */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(251, 191, 36, 0.3);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="relative">
+
+  <!-- 3D WEBGL CANVAS -->
+  <div id="canvasContainer"></div>
+
+  <!-- TOP TELEMETRY HEADER BAR -->
+  <header class="fixed top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-4 pointer-events-none">
+    <!-- Brand & Metric Identity -->
+    <div class="hud-glass rounded-2xl px-4 py-2.5 flex items-center gap-3.5 pointer-events-auto">
+      <div class="w-9 h-9 rounded-xl bg-amber-400/15 border border-amber-300/40 flex items-center justify-center text-amber-300">
+        <svg class="w-5 h-5 animate-spin" style="animation-duration: 14s;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono uppercase tracking-[0.2em] text-amber-300 font-bold">Morris–Thorne Metric</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-mono font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">STABLE THROAT</span>
+        </div>
+        <h1 class="text-sm sm:text-base font-extrabold text-white tracking-tight">Einstein–Rosen Bridge & Relativistic Accretion Simulator</h1>
+      </div>
+    </div>
+
+    <!-- Live Relativistic Telemetry Readout -->
+    <div class="hud-glass rounded-2xl px-4 py-2.5 hidden xl:flex items-center gap-6 pointer-events-auto font-mono text-xs">
+      <div>
+        <span class="text-slate-400 block text-[10px]">LINE ELEMENT</span>
+        <span class="text-amber-200 font-bold">ds² = -c²dt² + dl² + (b₀² + l²)dΩ²</span>
+      </div>
+      <div class="h-7 w-px bg-slate-700/80"></div>
+      <div>
+        <span class="text-slate-400 block text-[10px]">TIME DILATION (γ)</span>
+        <span id="telemetryGamma" class="text-sky-300 font-bold">1.428 c</span>
+      </div>
+      <div class="h-7 w-px bg-slate-700/80"></div>
+      <div>
+        <span class="text-slate-400 block text-[10px]">EXOTIC TENSOR (ρc²)</span>
+        <span id="telemetryExotic" class="text-purple-300 font-bold">-4.82 × 10⁴² J/m³</span>
+      </div>
+      <div class="h-7 w-px bg-slate-700/80"></div>
+      <div>
+        <span class="text-slate-400 block text-[10px]">FPS</span>
+        <span id="telemetryFps" class="text-emerald-300 font-bold">60</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- LEFT ANATOMY & CAMERA PRESETS PANEL -->
+  <aside class="fixed bottom-4 left-4 top-20 z-20 w-72 flex flex-col justify-between pointer-events-none">
+    <div class="hud-glass rounded-2xl p-4 pointer-events-auto space-y-4 overflow-y-auto max-h-full">
+      <div>
+        <p class="text-[11px] font-mono font-bold uppercase tracking-widest text-amber-300">Camera Flight Modes</p>
+        <p class="text-xs text-slate-200 mt-0.5">Inspect outside curvature or dive through the throat</p>
+      </div>
+
+      <!-- Camera Mode Buttons -->
+      <div class="grid grid-cols-1 gap-2">
+        <button id="camBtn-orbit" onclick="setCameraMode('orbit')" class="cam-mode-btn w-full text-left px-3.5 py-2.5 rounded-xl border-2 border-amber-400 bg-amber-400/15 transition flex items-center justify-between cursor-pointer">
+          <div>
+            <p class="text-xs font-bold text-white">External Orbital Survey</p>
+            <p class="text-[11px] text-amber-100">Drag to rotate • Scroll to zoom</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-amber-300">01</span>
+        </button>
+
+        <button id="camBtn-flythrough" onclick="setCameraMode('flythrough')" class="cam-mode-btn w-full text-left px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/85 hover:border-amber-300/50 transition flex items-center justify-between cursor-pointer">
+          <div>
+            <p class="text-xs font-bold text-white">Autonomous Throat Transit</p>
+            <p class="text-[11px] text-slate-300">Dive from Universe A → Universe B</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-sky-300">02</span>
+        </button>
+
+        <button id="camBtn-throat" onclick="setCameraMode('throat')" class="cam-mode-btn w-full text-left px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/85 hover:border-amber-300/50 transition flex items-center justify-between cursor-pointer">
+          <div>
+            <p class="text-xs font-bold text-white">Singularity Horizon Grazing</p>
+            <p class="text-[11px] text-slate-300">Close-up photon ring & exotic cage</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-purple-300">03</span>
+        </button>
+      </div>
+
+      <!-- Component Visibility Toggles -->
+      <div class="pt-3 border-t border-slate-700/80">
+        <p class="text-[11px] font-mono font-bold uppercase tracking-widest text-amber-300 mb-2.5">Spacetime Components</p>
+        <div class="space-y-2 text-xs">
+          <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer hover:border-slate-600">
+            <span class="text-slate-100 font-medium">Spacetime Funnel & Grid</span>
+            <input type="checkbox" id="toggleFunnel" checked class="accent-amber-400 w-4 h-4 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer hover:border-slate-600">
+            <span class="text-slate-100 font-medium">Relativistic Accretion Disk</span>
+            <input type="checkbox" id="toggleAccretion" checked class="accent-amber-400 w-4 h-4 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer hover:border-slate-600">
+            <span class="text-slate-100 font-medium">Exotic Matter Throat Stabilizer</span>
+            <input type="checkbox" id="toggleExotic" checked class="accent-amber-400 w-4 h-4 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer hover:border-slate-600">
+            <span class="text-slate-100 font-medium">Polar Relativistic Plasma Jets</span>
+            <input type="checkbox" id="toggleJets" checked class="accent-amber-400 w-4 h-4 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer hover:border-slate-600">
+            <span class="text-slate-100 font-medium">Gravitational Lensing Halo</span>
+            <input type="checkbox" id="toggleLensing" checked class="accent-amber-400 w-4 h-4 cursor-pointer" />
+          </label>
+          <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-slate-800 cursor-pointer hover:border-slate-600">
+            <span class="text-slate-100 font-medium">3D Anatomy Callout Labels</span>
+            <input type="checkbox" id="toggleLabels" checked class="accent-amber-400 w-4 h-4 cursor-pointer" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Color Palette Presets -->
+      <div class="pt-3 border-t border-slate-700/80">
+        <p class="text-[11px] font-mono font-bold uppercase tracking-widest text-amber-300 mb-2">Spectral Theme Presets</p>
+        <div class="grid grid-cols-3 gap-1.5 text-[11px] font-semibold">
+          <button onclick="applyColorPreset('gargantua')" class="py-1.5 px-2 rounded-lg bg-amber-500/20 border border-amber-400/50 text-amber-200 hover:bg-amber-500/30 transition cursor-pointer">
+            Gargantua Gold
+          </button>
+          <button onclick="applyColorPreset('cherenkov')" class="py-1.5 px-2 rounded-lg bg-sky-500/20 border border-sky-400/50 text-sky-200 hover:bg-sky-500/30 transition cursor-pointer">
+            Cherenkov Cyan
+          </button>
+          <button onclick="applyColorPreset('tachyon')" class="py-1.5 px-2 rounded-lg bg-purple-500/20 border border-purple-400/50 text-purple-200 hover:bg-purple-500/30 transition cursor-pointer">
+            Tachyon Violet
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT INTERACTIVE PARAMETER CONTROL DECK -->
+  <aside class="fixed bottom-4 right-4 top-20 z-20 w-80 flex flex-col justify-between pointer-events-none">
+    <div class="hud-glass rounded-2xl p-5 pointer-events-auto space-y-4 overflow-y-auto max-h-full">
+      <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
+        <div>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-widest text-amber-300">Physics Parameters</p>
+          <h2 class="text-sm font-extrabold text-white">Real-Time Metric Controls</h2>
+        </div>
+        <button id="toggleUIButton" onclick="resetParameters()" class="text-xs font-mono font-semibold text-amber-300 hover:underline cursor-pointer">
+          Reset
+        </button>
+      </div>
+
+      <!-- Slider 1: Throat Radius (b0) -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Throat Radius (b₀)</span>
+          <span id="valThroatRadius" class="font-mono font-bold text-amber-300">2.20 Rs</span>
+        </div>
+        <input id="paramThroatRadius" type="range" min="1.0" max="4.2" step="0.05" value="2.2" />
+      </div>
+
+      <!-- Slider 2: Bridge Length (L) -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Tunnel Length (2L)</span>
+          <span id="valBridgeLength" class="font-mono font-bold text-amber-300">18.0 ly</span>
+        </div>
+        <input id="paramBridgeLength" type="range" min="8.0" max="30.0" step="0.5" value="18.0" />
+      </div>
+
+      <!-- Slider 3: Curvature Flare (Mouth Widening) -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Mouth Flare Curvature</span>
+          <span id="valFlare" class="font-mono font-bold text-amber-300">1.35</span>
+        </div>
+        <input id="paramFlare" type="range" min="0.6" max="2.4" step="0.05" value="1.35" />
+      </div>
+
+      <!-- Slider 4: Spacetime Twist / Frame Dragging (Kerr Spin) -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Frame-Dragging Twist (ω)</span>
+          <span id="valTwist" class="font-mono font-bold text-sky-300">2.50 rad</span>
+        </div>
+        <input id="paramTwist" type="range" min="0.0" max="6.0" step="0.1" value="2.5" />
+      </div>
+
+      <!-- Slider 5: Relativistic Warp & Flow Speed -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Geodesic Flow Velocity</span>
+          <span id="valWarpSpeed" class="font-mono font-bold text-sky-300">1.50 c</span>
+        </div>
+        <input id="paramWarpSpeed" type="range" min="0.1" max="4.0" step="0.1" value="1.5" />
+      </div>
+
+      <!-- Slider 6: Accretion Disk Spin & Turbulence -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Accretion Disk Spin</span>
+          <span id="valDiskSpin" class="font-mono font-bold text-purple-300">1.80×</span>
+        </div>
+        <input id="paramDiskSpin" type="range" min="0.2" max="4.5" step="0.1" value="1.8" />
+      </div>
+
+      <!-- Slider 7: Gravitational Lensing Distortion -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Einstein Ring Lensing</span>
+          <span id="valLensing" class="font-mono font-bold text-emerald-300">1.25</span>
+        </div>
+        <input id="paramLensing" type="range" min="0.2" max="2.5" step="0.05" value="1.25" />
+      </div>
+
+      <!-- Slider 8: Starfield & Nebula Density -->
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-100">Cosmic Star Brightness</span>
+          <span id="valStarLuminosity" class="font-mono font-bold text-emerald-300">1.40×</span>
+        </div>
+        <input id="paramStarLuminosity" type="range" min="0.3" max="2.5" step="0.1" value="1.4" />
+      </div>
+
+      <!-- Educational Physics Note -->
+      <div class="p-3.5 rounded-xl bg-slate-900/90 border border-amber-300/30 text-[11px] text-slate-200 leading-relaxed">
+        <p class="font-mono font-bold text-amber-300 mb-1">ANATOMY NOTE</p>
+        Unlike a Schwarzschild black hole with a crushing singularity, a traversable <strong class="text-white">Morris–Thorne wormhole</strong> uses negative-energy <strong class="text-sky-300">exotic matter</strong> at the throat ($r = b_0$) to violate the averaged null energy condition so light and travelers can cross between <strong class="text-amber-200">Universe A</strong> and <strong class="text-purple-200">Universe B</strong>.
+      </div>
+    </div>
+  </aside>
+
+  <!-- 3D FLOATING ANATOMY CALLOUT PINS -->
+  <div id="labelsContainer" class="fixed inset-0 pointer-events-none z-10 overflow-hidden">
+    <div id="pin-throat" class="absolute px-2.5 py-1 rounded-lg hud-glass text-[11px] font-mono text-amber-200 border border-amber-400/50 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200">
+      ● Wormhole Throat (r = b₀)
+    </div>
+    <div id="pin-mouthA" class="absolute px-2.5 py-1 rounded-lg hud-glass text-[11px] font-mono text-sky-200 border border-sky-400/50 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200">
+      ● Mouth A (Local Universe)
+    </div>
+    <div id="pin-mouthB" class="absolute px-2.5 py-1 rounded-lg hud-glass text-[11px] font-mono text-purple-200 border border-purple-400/50 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200">
+      ● Mouth B (Distant Galaxy Sector)
+    </div>
+    <div id="pin-accretion" class="absolute px-2.5 py-1 rounded-lg hud-glass text-[11px] font-mono text-orange-200 border border-orange-400/50 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200">
+      ● Relativistic Accretion Disk
+    </div>
+    <div id="pin-exotic" class="absolute px-2.5 py-1 rounded-lg hud-glass text-[11px] font-mono text-emerald-200 border border-emerald-400/50 -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200">
+      ● Exotic Matter Stabilization Ring
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3D WORMHOLE & COSMOS ENGINE (THREE.JS + CUSTOM GLSL SHADERS)
+       ========================================================================= -->
+  <script>
+    /********************************************************************
+     * 1. SIMULATION PARAMETERS STATE
+     ********************************************************************/
+    const params = {
+      throatRadius: 2.2,
+      bridgeLength: 18.0,
+      flare: 1.35,
+      twist: 2.5,
+      warpSpeed: 1.5,
+      diskSpin: 1.8,
+      lensing: 1.25,
+      starLuminosity: 1.4,
+      cameraMode: 'orbit', // 'orbit' | 'flythrough' | 'throat'
+      primaryColor: new THREE.Color('#fbbf24'),   // Gargantua Gold
+      secondaryColor: new THREE.Color('#38bdf8'), // Relativistic Cyan
+      tertiaryColor: new THREE.Color('#a855f7')   // Deep Space Violet
+    };
+
+    /********************************************************************
+     * 2. SCENE, CAMERA & RENDERER SETUP
+     ********************************************************************/
+    const container = document.getElementById('canvasContainer');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x030408, 0.0045);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 600);
+    camera.position.set(16, 9, 22);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxDistance = 120;
+    controls.minDistance = 1.5;
+
+    /********************************************************************
+     * 3. PROCEDURAL SOFT GLOW SPRITE TEXTURE
+     ********************************************************************/
+    function createParticleTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0.0, 'rgba(255, 255, 255, 1)');
+      grad.addColorStop(0.25, 'rgba(255, 240, 200, 0.85)');
+      grad.addColorStop(0.6, 'rgba(120, 180, 255, 0.25)');
+      grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 64, 64);
+      const tex = new THREE.CanvasTexture(canvas);
+      return tex;
+    }
+    const particleTex = createParticleTexture();
+
+    /********************************************************************
+     * 4. WORMHOLE SPACETIME FUNNEL MESH & CUSTOM GLSL SHADER
+     *    Follows the Morris-Thorne embedding profile:
+     *    r(z) = b0 * (1 + (z / L)^2)^(flare / 2)
+     ********************************************************************/
+    const wormholeGroup = new THREE.Group();
+    scene.add(wormholeGroup);
+
+    const RADIAL_SEGMENTS = 128;
+    const HEIGHT_SEGMENTS = 160;
+    const baseCylinderGeo = new THREE.CylinderGeometry(1, 1, 1, RADIAL_SEGMENTS, HEIGHT_SEGMENTS, true);
+
+    const funnelUniforms = {
+      uTime: { value: 0 },
+      uWarpSpeed: { value: params.warpSpeed },
+      uTwist: { value: params.twist },
+      uColorPrimary: { value: params.primaryColor },
+      uColorSecondary: { value: params.secondaryColor },
+      uColorTertiary: { value: params.tertiaryColor }
+    };
+
+    const funnelVertexShader = `
+      varying vec2 vUv;
+      varying vec3 vWorldPos;
+      varying float vRadialFactor;
+      void main() {
+        vUv = uv;
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vWorldPos = worldPos.xyz;
+        vRadialFactor = length(position.xz);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `;
+
+    const funnelFragmentShader = `
+      uniform float uTime;
+      uniform float uWarpSpeed;
+      uniform float uTwist;
+      uniform vec3 uColorPrimary;
+      uniform vec3 uColorSecondary;
+      uniform vec3 uColorTertiary;
+      varying vec2 vUv;
+      varying vec3 vWorldPos;
+      varying float vRadialFactor;
+
+      void main() {
+        // Longitudinal coordinate (-1 at Mouth B to +1 at Mouth A)
+        float zNorm = (vUv.y - 0.5) * 2.0;
+        float distFromThroat = abs(zNorm);
+
+        // Twisted spacetime coordinate lines (Frame-dragging)
+        float angle = vUv.x * 6.2831853 + zNorm * uTwist - uTime * 0.4 * uWarpSpeed;
+        float flowZ = vUv.y * 28.0 - uTime * 2.2 * uWarpSpeed;
+
+        // Coordinate grid lines (meridians & parallels of embedding diagram)
+        float meridian = abs(sin(angle * 18.0));
+        float parallel = abs(sin(flowZ * 3.14159));
+
+        float gridLineM = smoothstep(0.92, 0.995, meridian);
+        float gridLineP = smoothstep(0.90, 0.99, parallel);
+        float grid = max(gridLineM * 0.85, gridLineP * 0.75);
+
+        // Relativistic energy streaks hurtling through the throat
+        float streakWave = sin(angle * 6.0 + flowZ * 0.7) * 0.5 + 0.5;
+        float throatGlow = exp(-distFromThroat * 3.2);
+
+        // Blend Universe A (Gold/Cyan) & Universe B (Violet/Cyan)
+        vec3 sideColor = mix(uColorPrimary, uColorTertiary, smoothstep(-0.6, 0.6, zNorm));
+        vec3 baseColor = mix(sideColor, uColorSecondary, throatGlow);
+
+        vec3 finalColor = baseColor * (grid * 1.6 + streakWave * 0.35 + throatGlow * 1.15);
+
+        // Smooth fade out at the far outer mouths so it merges seamlessly into space
+        float mouthFade = 1.0 - smoothstep(0.72, 1.0, distFromThroat);
+        float alpha = (grid * 0.75 + throatGlow * 0.55 + 0.12) * mouthFade;
+
+        gl_FragColor = vec4(finalColor, clamp(alpha, 0.0, 0.95));
+      }
+    `;
+
+    const funnelMaterial = new THREE.ShaderMaterial({
+      uniforms: funnelUniforms,
+      vertexShader: funnelVertexShader,
+      fragmentShader: funnelFragmentShader,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    const funnelMesh = new THREE.Mesh(baseCylinderGeo, funnelMaterial);
+    // Align cylinder along Z-axis so Mouth A is +Z and Mouth B is -Z
+    funnelMesh.rotation.x = Math.PI / 2;
+    wormholeGroup.add(funnelMesh);
+
+    // Function to dynamically reshape the wormhole vertices based on b0, L, and flare
+    const posAttr = baseCylinderGeo.attributes.position;
+    const origPositions = new Float32Array(posAttr.array.length);
+    origPositions.set(posAttr.array);
+
+    function updateWormholeGeometry() {
+      const b0 = params.throatRadius;
+      const L = params.bridgeLength;
+      const flare = params.flare;
+
+      for (let i = 0; i < posAttr.count; i++) {
+        const ox = origPositions[i * 3];
+        const oy = origPositions[i * 3 + 1]; // -0.5 to +0.5 along cylinder axis
+        const oz = origPositions[i * 3 + 2];
+
+        const zNorm = oy * 2.0; // -1 to +1
+        // Morris-Thorne embedding profile
+        const r = b0 * Math.pow(1.0 + Math.pow(zNorm * 2.2, 2.0), flare * 0.55);
+
+        const angle = Math.atan2(oz, ox);
+        posAttr.setXYZ(
+          i,
+          Math.cos(angle) * r,
+          oy * L,
+          Math.sin(angle) * r
+        );
+      }
+      posAttr.needsUpdate = true;
+      baseCylinderGeo.computeVertexNormals();
+    }
+    updateWormholeGeometry();
+
+    /********************************************************************
+     * 5. RELATIVISTIC ACCRETION DISK (SWIRLING PLASMA + DOPPLER BEAMING)
+     ********************************************************************/
+    const accretionGroup = new THREE.Group();
+    scene.add(accretionGroup);
+
+    const diskUniforms = {
+      uTime: { value: 0 },
+      uSpin: { value: params.diskSpin },
+      uInnerRadius: { value: params.throatRadius * 1.15 },
+      uColorHot: { value: new THREE.Color('#fff7ed') },
+      uColorMid: { value: params.primaryColor },
+      uColorOuter: { value: new THREE.Color('#ea580c') }
+    };
+
+    const diskGeo = new THREE.RingGeometry(1, 14, 128, 64);
+    const diskMat = new THREE.ShaderMaterial({
+      uniforms: diskUniforms,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vPos;
+        void main() {
+          vUv = uv;
+          vPos = position;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uSpin;
+        uniform vec3 uColorHot;
+        uniform vec3 uColorMid;
+        uniform vec3 uColorOuter;
+        varying vec2 vUv;
+        varying vec3 vPos;
+
+        // Simple pseudo-noise for plasma filaments
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+                     mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+        }
+
+        void main() {
+          float r = length(vPos.xy);
+          float normR = clamp((r - 1.0) / 13.0, 0.0, 1.0);
+          float angle = atan(vPos.y, vPos.x);
+
+          // Differential Keplerian rotation (inner orbits spin faster)
+          float spiralAngle = angle + (6.0 / (normR + 0.25)) - uTime * uSpin * 1.4;
+
+          float n1 = noise(vec2(normR * 16.0, spiralAngle * 3.0));
+          float n2 = noise(vec2(normR * 32.0 - uTime * 0.8, spiralAngle * 6.0));
+          float rings = sin(normR * 45.0 - uTime * uSpin * 3.0) * 0.5 + 0.5;
+
+          float intensity = (n1 * 0.55 + n2 * 0.35 + rings * 0.25);
+
+          // Relativistic Doppler beaming (one side slightly brighter)
+          float doppler = 0.85 + 0.3 * sin(angle);
+
+          vec3 col = mix(uColorHot, uColorMid, smoothstep(0.0, 0.35, normR));
+          col = mix(col, uColorOuter, smoothstep(0.35, 0.95, normR));
+
+          float edgeFade = smoothstep(0.0, 0.08, normR) * (1.0 - smoothstep(0.65, 1.0, normR));
+          float alpha = intensity * edgeFade * doppler * 0.95;
+
+          gl_FragColor = vec4(col * (1.2 + (1.0 - normR) * 1.4), clamp(alpha, 0.0, 1.0));
+        }
+      `
+    });
+
+    const mainAccretionDisk = new THREE.Mesh(diskGeo, diskMat);
+    mainAccretionDisk.rotation.x = Math.PI * 0.42;
+    accretionGroup.add(mainAccretionDisk);
+
+    // Secondary Lensed Photon Arch (simulates light from back of disk bent over top/bottom of throat)
+    const lensedDiskMesh = new THREE.Mesh(diskGeo, diskMat);
+    lensedDiskMesh.rotation.y = Math.PI * 0.08;
+    lensedDiskMesh.scale.set(0.78, 0.78, 0.78);
+    accretionGroup.add(lensedDiskMesh);
+
+    /********************************************************************
+     * 6. EXOTIC MATTER THROAT STABILIZER CAGE & PHOTON SPHERE HALO
+     ********************************************************************/
+    const exoticGroup = new THREE.Group();
+    scene.add(exoticGroup);
+
+    const exoticRingGeo = new THREE.TorusGeometry(1, 0.055, 24, 120);
+    const exoticRingMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+
+    const exoticRings = [];
+    for (let i = 0; i < 3; i++) {
+      const ring = new THREE.Mesh(exoticRingGeo, exoticRingMat.clone());
+      ring.rotation.x = (i * Math.PI) / 3;
+      ring.rotation.y = (i * Math.PI) / 4;
+      exoticGroup.add(ring);
+      exoticRings.push(ring);
+    }
+
+    // Gravitational Lensing Einstein Ring Halo
+    const lensingGroup = new THREE.Group();
+    scene.add(lensingGroup);
+
+    const einsteinHaloGeo = new THREE.SphereGeometry(1.0, 64, 64);
+    const einsteinHaloMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uLensing: { value: params.lensing },
+        uColor: { value: params.secondaryColor }
+      },
+      transparent: true,
+      side: THREE.BackSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vViewPosition = -mvPosition.xyz;
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform float uLensing;
+        uniform vec3 uColor;
+        varying vec3 vNormal;
+        varying vec3 vViewPosition;
+        void main() {
+          vec3 normal = normalize(vNormal);
+          vec3 viewDir = normalize(vViewPosition);
+          float fresnel = pow(1.0 - abs(dot(normal, viewDir)), 2.6);
+          gl_FragColor = vec4(uColor * 1.6, fresnel * uLensing * 0.75);
+        }
+      `
+    });
+    const einsteinHaloMesh = new THREE.Mesh(einsteinHaloGeo, einsteinHaloMat);
+    lensingGroup.add(einsteinHaloMesh);
+
+    /********************************************************************
+     * 7. POLAR RELATIVISTIC PLASMA JETS & IN-FALLING PARTICLE STREAM
+     ********************************************************************/
+    const jetsGroup = new THREE.Group();
+    scene.add(jetsGroup);
+
+    const JET_PARTICLES = 1800;
+    const jetGeo = new THREE.BufferGeometry();
+    const jetPositions = new Float32Array(JET_PARTICLES * 3);
+    const jetColors = new Float32Array(JET_PARTICLES * 3);
+    const jetSpeeds = new Float32Array(JET_PARTICLES);
+
+    for (let i = 0; i < JET_PARTICLES; i++) {
+      const side = i % 2 === 0 ? 1 : -1;
+      const z = side * (Math.random() * 24);
+      const spread = 0.25 + Math.pow(Math.abs(z) / 24, 1.4) * 4.5;
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.random() * spread;
+
+      jetPositions[i * 3] = Math.cos(angle) * radius;
+      jetPositions[i * 3 + 1] = Math.sin(angle) * radius;
+      jetPositions[i * 3 + 2] = z;
+
+      jetSpeeds[i] = 0.12 + Math.random() * 0.22;
+
+      const c = side > 0 ? new THREE.Color('#38bdf8') : new THREE.Color('#c084fc');
+      jetColors[i * 3] = c.r;
+      jetColors[i * 3 + 1] = c.g;
+      jetColors[i * 3 + 2] = c.b;
+    }
+
+    jetGeo.setAttribute('position', new THREE.BufferAttribute(jetPositions, 3));
+    jetGeo.setAttribute('color', new THREE.BufferAttribute(jetColors, 3));
+
+    const jetMat = new THREE.PointsMaterial({
+      size: 0.38,
+      map: particleTex,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    const jetPoints = new THREE.Points(jetGeo, jetMat);
+    jetsGroup.add(jetPoints);
+
+    /********************************************************************
+     * 8. DEEP UNIVERSE: MULTICOLOR STARFIELD, DISTANT GALAXIES & NEBULAE
+     ********************************************************************/
+    const universeGroup = new THREE.Group();
+    scene.add(universeGroup);
+
+    const STAR_COUNT = 7500;
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(STAR_COUNT * 3);
+    const starCol = new Float32Array(STAR_COUNT * 3);
+
+    const stellarPalette = [
+      new THREE.Color('#ffffff'), // Pure White A-type
+      new THREE.Color('#bae6fd'), // Blue-white O/B supergiant
+      new THREE.Color('#fde68a'), // Warm G-type Yellow-Gold
+      new THREE.Color('#fdba74'), // K-type Orange Giant
+      new THREE.Color('#c4b5fd')  // Distant Violet Nebula Star
+    ];
+
+    for (let i = 0; i < STAR_COUNT; i++) {
+      const r = 35 + Math.random() * 220;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      starPos[i * 3 + 2] = r * Math.cos(phi);
+
+      const c = stellarPalette[Math.floor(Math.random() * stellarPalette.length)];
+      starCol[i * 3] = c.r;
+      starCol[i * 3 + 1] = c.g;
+      starCol[i * 3 + 2] = c.b;
+    }
+
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(starCol, 3));
+
+    const starMat = new THREE.PointsMaterial({
+      size: 1.15,
+      map: particleTex,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    const starField = new THREE.Points(starGeo, starMat);
+    universeGroup.add(starField);
+
+    // Distant Spiral Galaxy in Universe B (-Z sector) & Universe A (+Z sector)
+    function createSpiralGalaxy(centerZ, primaryHex, secondaryHex) {
+      const count = 2400;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const col = new Float32Array(count * 3);
+      const c1 = new THREE.Color(primaryHex);
+      const c2 = new THREE.Color(secondaryHex);
+
+      for (let i = 0; i < count; i++) {
+        const radius = Math.pow(Math.random(), 1.6) * 28;
+        const armAngle = (i % 3) * ((Math.PI * 2) / 3);
+        const spinAngle = radius * 0.35 + armAngle + (Math.random() - 0.5) * 0.55;
+
+        pos[i * 3] = Math.cos(spinAngle) * radius + (sideOffset(centerZ));
+        pos[i * 3 + 1] = (Math.random() - 0.5) * 2.2 + (centerZ > 0 ? 14 : -14);
+        pos[i * 3 + 2] = centerZ + Math.sin(spinAngle) * radius * 0.4;
+
+        const mixed = c1.clone().lerp(c2, radius / 28);
+        col[i * 3] = mixed.r;
+        col[i * 3 + 1] = mixed.g;
+        col[i * 3 + 2] = mixed.b;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+      const mat = new THREE.PointsMaterial({
+        size: 1.35,
+        map: particleTex,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.75,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      return new THREE.Points(geo, mat);
+    }
+
+    function sideOffset(z) {
+      return z > 0 ? -24 : 24;
+    }
+
+    const galaxyA = createSpiralGalaxy(55, '#fbbf24', '#38bdf8');
+    const galaxyB = createSpiralGalaxy(-55, '#ec4899', '#8b5cf6');
+    universeGroup.add(galaxyA);
+    universeGroup.add(galaxyB);
+
+    /********************************************************************
+     * 9. UI CONTROLS, PRESETS & SYNCHRONIZATION
+     ********************************************************************/
+    function syncAllParameters() {
+      const b0 = params.throatRadius;
+      const L = params.bridgeLength;
+
+      updateWormholeGeometry();
+
+      // Scale Accretion Disk & Exotic Stabilizer Cage with Throat Radius
+      const diskScale = b0 / 2.2;
+      accretionGroup.scale.set(diskScale, diskScale, diskScale);
+      exoticGroup.scale.set(b0 * 1.04, b0 * 1.04, b0 * 1.04);
+      einsteinHaloMesh.scale.set(b0 * 1.65, b0 * 1.65, b0 * 1.65);
+
+      // Update Uniforms
+      funnelUniforms.uWarpSpeed.value = params.warpSpeed;
+      funnelUniforms.uTwist.value = params.twist;
+      diskUniforms.uSpin.value = params.diskSpin;
+      einsteinHaloMat.uniforms.uLensing.value = params.lensing;
+      starMat.opacity = Math.min(1.0, params.starLuminosity * 0.65);
+      starMat.size = 0.85 * params.starLuminosity;
+
+      // Update Live Telemetry Readout
+      const gamma = (1.0 / Math.sqrt(Math.max(0.08, 1.0 - Math.min(0.92, params.warpSpeed * 0.22)))).toFixed(3);
+      const exoticDensity = (-2.15 * (10 / (b0 * b0)) * params.flare).toFixed(2);
+      document.getElementById('telemetryGamma').textContent = `${gamma} γ`;
+      document.getElementById('telemetryExotic').textContent = `${exoticDensity} × 10⁴² J/m³`;
+    }
+
+    // Bind Range Sliders
+    const bindSlider = (id, key, labelId, suffix = '', decimals = 2) => {
+      const el = document.getElementById(id);
+      const label = document.getElementById(labelId);
+      el.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        params[key] = val;
+        label.textContent = val.toFixed(decimals) + suffix;
+        syncAllParameters();
+      });
+    };
+
+    bindSlider('paramThroatRadius', 'throatRadius', 'valThroatRadius', ' Rs', 2);
+    bindSlider('paramBridgeLength', 'bridgeLength', 'valBridgeLength', ' ly', 1);
+    bindSlider('paramFlare', 'flare', 'valFlare', '', 2);
+    bindSlider('paramTwist', 'twist', 'valTwist', ' rad', 2);
+    bindSlider('paramWarpSpeed', 'warpSpeed', 'valWarpSpeed', ' c', 2);
+    bindSlider('paramDiskSpin', 'diskSpin', 'valDiskSpin', '×', 2);
+    bindSlider('paramLensing', 'lensing', 'valLensing', '', 2);
+    bindSlider('paramStarLuminosity', 'starLuminosity', 'valStarLuminosity', '×', 2);
+
+    // Component Visibility Checkboxes
+    document.getElementById('toggleFunnel').addEventListener('change', e => wormholeGroup.visible = e.target.checked);
+    document.getElementById('toggleAccretion').addEventListener('change', e => accretionGroup.visible = e.target.checked);
+    document.getElementById('toggleExotic').addEventListener('change', e => exoticGroup.visible = e.target.checked);
+    document.getElementById('toggleJets').addEventListener('change', e => jetsGroup.visible = e.target.checked);
+    document.getElementById('toggleLensing').addEventListener('change', e => lensingGroup.visible = e.target.checked);
+    document.getElementById('toggleLabels').addEventListener('change', e => {
+      document.getElementById('labelsContainer').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    // Spectral Color Presets
+    window.applyColorPreset = function(preset) {
+      if (preset === 'gargantua') {
+        params.primaryColor.set('#fbbf24');
+        params.secondaryColor.set('#38bdf8');
+        params.tertiaryColor.set('#a855f7');
+        diskUniforms.uColorMid.value.set('#fbbf24');
+        diskUniforms.uColorOuter.value.set('#ea580c');
+      } else if (preset === 'cherenkov') {
+        params.primaryColor.set('#38bdf8');
+        params.secondaryColor.set('#2dd4bf');
+        params.tertiaryColor.set('#6366f1');
+        diskUniforms.uColorMid.value.set('#38bdf8');
+        diskUniforms.uColorOuter.value.set('#0284c7');
+      } else if (preset === 'tachyon') {
+        params.primaryColor.set('#e879f9');
+        params.secondaryColor.set('#a855f7');
+        params.tertiaryColor.set('#f43f5e');
+        diskUniforms.uColorMid.value.set('#e879f9');
+        diskUniforms.uColorOuter.value.set('#9333ea');
+      }
+      einsteinHaloMat.uniforms.uColor.value.copy(params.secondaryColor);
+    };
+
+    // Camera Flight Mode Switcher
+    window.setCameraMode = function(mode) {
+      params.cameraMode = mode;
+      document.querySelectorAll('.cam-mode-btn').forEach(btn => {
+        btn.className = 'cam-mode-btn w-full text-left px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900/85 hover:border-amber-300/50 transition flex items-center justify-between cursor-pointer';
+      });
+      const activeBtn = document.getElementById(`camBtn-${mode}`);
+      if (activeBtn) {
+        activeBtn.className = 'cam-mode-btn w-full text-left px-3.5 py-2.5 rounded-xl border-2 border-amber-400 bg-amber-400/15 transition flex items-center justify-between cursor-pointer';
+      }
+
+      if (mode === 'orbit') {
+        controls.enabled = true;
+        camera.position.set(16, 9, 22);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'throat') {
+        controls.enabled = true;
+        camera.position.set(0, 2.2, 6.2);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'flythrough') {
+        controls.enabled = false;
+      }
+    };
+
+    window.resetParameters = function() {
+      params.throatRadius = 2.2;
+      params.bridgeLength = 18.0;
+      params.flare = 1.35;
+      params.twist = 2.5;
+      params.warpSpeed = 1.5;
+      params.diskSpin = 1.8;
+      params.lensing = 1.25;
+      params.starLuminosity = 1.4;
+
+      document.getElementById('paramThroatRadius').value = 2.2;
+      document.getElementById('valThroatRadius').textContent = '2.20 Rs';
+      document.getElementById('paramBridgeLength').value = 18.0;
+      document.getElementById('valBridgeLength').textContent = '18.0 ly';
+      document.getElementById('paramFlare').value = 1.35;
+      document.getElementById('valFlare').textContent = '1.35';
+      document.getElementById('paramTwist').value = 2.5;
+      document.getElementById('valTwist').textContent = '2.50 rad';
+      document.getElementById('paramWarpSpeed').value = 1.5;
+      document.getElementById('valWarpSpeed').textContent = '1.50 c';
+      document.getElementById('paramDiskSpin').value = 1.8;
+      document.getElementById('valDiskSpin').textContent = '1.80×';
+      document.getElementById('paramLensing').value = 1.25;
+      document.getElementById('valLensing').textContent = '1.25';
+      document.getElementById('paramStarLuminosity').value = 1.4;
+      document.getElementById('valStarLuminosity').textContent = '1.40×';
+
+      applyColorPreset('gargantua');
+      syncAllParameters();
+    };
+
+    /********************************************************************
+     * 10. 3D-TO-2D ANATOMY PIN PROJECTION
+     ********************************************************************/
+    const pinTargets = [
+      { id: 'pin-throat', getPos: () => new THREE.Vector3(0, params.throatRadius * 1.15, 0) },
+      { id: 'pin-mouthA', getPos: () => new THREE.Vector3(0, params.throatRadius * 2.1, params.bridgeLength * 0.48) },
+      { id: 'pin-mouthB', getPos: () => new THREE.Vector3(0, -params.throatRadius * 2.1, -params.bridgeLength * 0.48) },
+      { id: 'pin-accretion', getPos: () => new THREE.Vector3(params.throatRadius * 3.8, 1.2, 0) },
+      { id: 'pin-exotic', getPos: () => new THREE.Vector3(-params.throatRadius * 1.2, -params.throatRadius * 0.9, 0) }
+    ];
+
+    function updateFloatingPins() {
+      const halfW = window.innerWidth / 2;
+      const halfH = window.innerHeight / 2;
+
+      pinTargets.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (!el) return;
+        const worldVec = item.getPos();
+        const proj = worldVec.clone().project(camera);
+
+        // Hide if behind camera
+        if (proj.z > 1.0) {
+          el.style.opacity = '0';
+          return;
+        }
+        const x = (proj.x * halfW) + halfW;
+        const y = -(proj.y * halfH) + halfH;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        el.style.opacity = '1';
+      });
+    }
+
+    /********************************************************************
+     * 11. ANIMATION LOOP & RELATIVISTIC TRANSIT FLIGHT
+     ********************************************************************/
+    let clock = new THREE.Clock();
+    let frameCount = 0;
+    let lastFpsUpdate = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const elapsed = clock.getElapsedTime();
+      funnelUniforms.uTime.value = elapsed;
+      diskUniforms.uTime.value = elapsed;
+
+      // Rotate Exotic Matter Cage Rings
+      exoticRings.forEach((ring, idx) => {
+        ring.rotation.z += 0.008 * (idx + 1) * params.warpSpeed;
+        ring.rotation.x += 0.004 * params.warpSpeed;
+      });
+
+      // Animate Relativistic Polar Jets
+      const jPos = jetGeo.attributes.position.array;
+      const maxJetZ = params.bridgeLength * 0.95;
+      for (let i = 0; i < JET_PARTICLES; i++) {
+        const side = i % 2 === 0 ? 1 : -1;
+        jPos[i * 3 + 2] += side * jetSpeeds[i] * params.warpSpeed;
+
+        if (Math.abs(jPos[i * 3 + 2]) > maxJetZ) {
+          jPos[i * 3 + 2] = side * 0.2;
+        }
+      }
+      jetGeo.attributes.position.needsUpdate = true;
+
+      // Subtle Cosmic Rotation
+      universeGroup.rotation.y = elapsed * 0.015;
+
+      // Autonomous Fly-Through Camera Mode
+      if (params.cameraMode === 'flythrough') {
+        const halfSpan = params.bridgeLength * 0.65;
+        const cycle = (elapsed * params.warpSpeed * 2.6) % (halfSpan * 2);
+        const zPos = halfSpan - cycle;
+        const spiralRadius = Math.min(params.throatRadius * 0.42, 0.9);
+
+        camera.position.set(
+          Math.cos(elapsed * 1.8) * spiralRadius,
+          Math.sin(elapsed * 1.8) * spiralRadius,
+          zPos
+        );
+        camera.lookAt(
+          Math.sin(elapsed * 1.2) * 0.3,
+          Math.cos(elapsed * 1.2) * 0.3,
+          zPos - 4.0
+        );
+      } else {
+        controls.update();
+      }
+
+      updateFloatingPins();
+      renderer.render(scene, camera);
+
+      // FPS Telemetry Counter
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsUpdate >= 500) {
+        const fps = Math.round((frameCount * 1000) / (now - lastFpsUpdate));
+        document.getElementById('telemetryFps').textContent = fps;
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    syncAllParameters();
+    animate();
+  </script>
+</body>
+</html>
