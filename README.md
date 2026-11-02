@@ -74,8 +74,8 @@ Because these projects are built under the **Thinking in HTML** philosophy, ther
 
 1. Clone or download the repository:
    ```bash
-   git clone https://github.com/<your-username>/<your-repo-name>.git
-   cd <your-repo-name>
+   git clone https://github.com/satwikj08/Thinking-in-html-artifacts.git
+   cd Thinking-in-html-artifacts
    ```
 2. Open any file directly in your web browser:
    * Double click `index.html` to open the central launchpad.
@@ -89,4 +89,4 @@ Because these projects are built under the **Thinking in HTML** philosophy, ther
 2. In your repository settings, navigate to **Settings** → **Pages**.
 3. Under **Build and deployment** → **Source**, select `Deploy from a branch`.
 4. Choose the `main` (or `master`) branch and the `/ (root)` folder, then click **Save**.
-5. Your interactive suite will be live worldwide at `https://<your-username>.github.io/<your-repo-name>/`.
+5. Your interactive suite will be live worldwide at `https://satwikj08.github.io/Thinking-in-html-artifacts/`.
